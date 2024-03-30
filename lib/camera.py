@@ -6,7 +6,7 @@ from libcamera import controls
 
 picam2 = Picamera2()
 
-def initialize_camera(img_h,img_w):
+def initialize_camera(img_h,img_w,exposure):
     picam2.stop()
     # camera_config = picam2.create_still_configuration(raw={}, main={"size": (img_h, img_w)}, lores={"size": (640, 480)}, display=None)
     camera_config = picam2.create_still_configuration( main={"size": (img_h, img_w)}, lores={"size": (640, 480)}, display=None, raw=picam2.sensor_modes[4])
@@ -16,6 +16,8 @@ def initialize_camera(img_h,img_w):
     picam2.configure(camera_config)
     # Initialize camera
     picam2.start()
+    if(exposure != 0):
+        picam2.set_controls({"ExposureTime": exposure})
 
 def shoot_preview(bnw):
     image = picam2.capture_image()

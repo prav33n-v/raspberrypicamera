@@ -41,14 +41,16 @@ mode=1          # Value to select shooting mode Stills/Timelapse Stills/Timelaps
 interval=1      # Interval between each shot for timelapse
 imageCount=10   # Default number of shots for timelapse
 imageQuality=4    # Value used to select output image resolution/size
-#exposuretime=[0,625,800,1000,1250,1562,2000,2500,3125,4000,5000,6250,8000,10000,12500,16667,20000,25000,33333,40000,50000,66667,76923,100000,125000,166667,200000,250000,333333,400000,500000,625000,769231,1000000,1300000,1600000,2000000,2500000,3000000,4000000,5000000,6000000,8000000,10000000,13000000,15000000,20000000,25000000,30000000,60000000,90000000,120000000,150000000,180000000]
+exposure=0
+# Exposure time OR Shutter Speed in microseconds
+exposureTime=[0,625,800,1000,1250,1562,2000,2500,3125,4000,5000,6250,8000,10000,12500,16667,20000,25000,33333,40000,50000,66667,76923,100000,125000,166667,200000,250000,333333,400000,500000,625000,769231,1000000,1300000,1600000,2000000,2500000,3000000,4000000,5000000,6000000,8000000,10000000,13000000,15000000,20000000,25000000,30000000,60000000,90000000,120000000,150000000,180000000]
 img_h=[1600,2048,2464,3008,3264,3888,4000,4656]
 img_w=[1200,1536,1632,2000,2448,2592,2800,3496]
 image=Image.new("RGB",(240,240),color='black')
 quickSwitch=False
 
 # Define path for storing images
-storagePath = "/mnt/usb0/"
+storagePath = "/mnt/usb/"
 
 def loadSettings():
     global bnw,raw,brightness,interval,mode,imageCount,imageQuality
@@ -57,7 +59,7 @@ def loadSettings():
     configFile= os.path.join(os.getcwd(),dir,filename)
     with open(configFile,'r') as openfile:
         config = json.load(openfile)
-    bnw,raw,mode,interval,imageCount,imageQuality,brightness=config['bnw'],config['raw'],config['mode'],config['interval'],config['imageCount'],config['imageQuality'],config['brightness']
+    bnw,raw,mode,interval,imageCount,imageQuality,brightness,exposure=config['bnw'],config['raw'],config['mode'],config['interval'],config['imageCount'],config['imageQuality'],config['brightness'],config['exposure']
     # Start the PWM at 50% duty cycle
     backlight.start(brightness)
 
@@ -70,7 +72,8 @@ def saveSettings():
         "interval":interval,
         "imageCount":imageCount,
         "imageQuality":imageQuality,
-        "brightness":brightness
+        "brightness":brightness,
+        "exposure":exposure
     }
     dir="config"
     filename="config.json"
@@ -85,13 +88,13 @@ def resetSettings():
     configFile= os.path.join(os.getcwd(),dir,filename)
     with open(configFile,'r') as openfile:
         config = json.load(openfile)
-    bnw,raw,mode,interval,imageCount,imageQuality,brightness=config['bnw'],config['raw'],config['mode'],config['interval'],config['imageCount'],config['imageQuality'],config['brightness']
+    bnw,raw,mode,interval,imageCount,imageQuality,brightness,exposure=config['bnw'],config['raw'],config['mode'],config['interval'],config['imageCount'],config['imageQuality'],config['brightness'],config['exposure']
     saveSettings()
     # Start the PWM at 50% duty cycle
     backlight.start(brightness)
 
 def preview():
-    lcd.camera_home(raw,bnw,camera.shoot_preview(bnw),mode)
+    lcd.camera_home(raw,bnw,camera.shoot_preview(bnw),mode,exposure)
 
 def clickPic():
     global image_filename
@@ -103,7 +106,7 @@ def clickPic():
     image_filename = storagePath + "Stills/img_" + str(timestr)
     camera.shoot(raw,bnw,image_filename)
     image=Image.open(image_filename+".jpg")
-    lcd.camera_home(raw,bnw,image,mode)
+    lcd.camera_home(raw,bnw,image,mode,exposure)
 
 def timelapse(path):
     global mode
@@ -114,7 +117,7 @@ def timelapse(path):
         time.sleep(interval)
         lcd.progress_bar(image_filename+".jpg",int(((x+1)/imageCount)*100),(x+1),imageCount,mode)
     image=Image.open(image_filename+".jpg")
-    lcd.camera_home(raw,bnw,image,mode)
+    lcd.camera_home(raw,bnw,image,mode,exposure)
 
 def blink(count):
     for x in range (1,count+1,1):
@@ -123,11 +126,11 @@ def blink(count):
             touchphat.set_led(y, False)
 
 def display():
-    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality
-    lcd.menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath)
+    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,exposure
+    lcd.menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure)
 
 def touchInput(input):
-    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch
+    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch,exposure
     if(input == 1):                 # BACK key on TouchPHAT
         touchphat.set_led(input, False)
         if(menu == 0):              # Do Nothing
@@ -142,7 +145,7 @@ def touchInput(input):
         else:
             if(menu >= 11 and menu <= 19):
                 menu=1
-                camera.initialize_camera(img_h[imageQuality],img_w[imageQuality])
+                camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
             elif(menu >= 21):
                 menu= menu // 10
             else:
@@ -157,7 +160,7 @@ def touchInput(input):
             if(menu >= 1 and menu <=9):
                 menu = ops.down(menu,1,4)
             elif(menu >= 11 and menu <= 19):
-                menu = ops.down(menu,11,13)
+                menu = ops.down(menu,11,14)
             elif(menu >= 21 and menu <= 29):
                 menu = ops.down(menu,21,23)
             elif(menu >= 221 and menu <= 229):
@@ -178,8 +181,13 @@ def touchInput(input):
 
     elif(input == 3):               # 'B' key on TouchPHAT being used as DECREMENT ( - )
         touchphat.set_led(input, False)
-        if (menu == 0):     # no action assigned
-            blink(1)
+        if (menu == 0):     # Adjust Exposure time OR Shutter speed
+            if(exposure < 53):
+                exposure = ops.increment(exposure,1)
+            else:
+                blink(1)
+            preview()
+            camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
         else:
             if( menu == 211 ):
                 if(contrast > -100):
@@ -198,8 +206,11 @@ def touchInput(input):
                     imageCount = ops.decrement(imageCount,10)
                 else:
                     blink(3)
-            elif(menu == 213 or menu == 223 or menu == 233):
-                exposure = ops.up(exposure,0,53)
+            elif(menu == 14):
+                if(exposure < 53):
+                    exposure = ops.increment(exposure,1)
+                else:
+                    blink(3)
             elif(menu == 31):
                 if(brightness > 5):
                     brightness = ops.decrement(brightness,5)
@@ -217,8 +228,13 @@ def touchInput(input):
 
     elif(input == 4):               # 'C' key on TouchPHAT being used as INCREMENT ( + )
         touchphat.set_led(input, False)
-        if (menu == 0):             # In future this button should do playback of previous images
-            blink(1)
+        if (menu == 0):             # Adjust Exposure time OR Shutter speed
+            if(exposure > 0):
+                exposure = ops.decrement(exposure,1)
+            else:
+                blink(1)
+            preview()
+            camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
         else:
             if( menu == 211 ):
                 if(contrast < 100):
@@ -231,8 +247,11 @@ def touchInput(input):
                 interval = ops.increment(interval,1)
             elif(menu == 232 or menu == 222):
                 imageCount = ops.increment(imageCount,10)
-            elif(menu == 213 or menu == 223 or menu == 233):
-                exposure = ops.down(exposure,0,53)
+            elif(menu == 14):
+                if(exposure > 0):
+                    exposure = ops.decrement(exposure,1)
+                else:
+                    blink(3)
             elif(menu == 31):
                 if(brightness < 100):
                     brightness = ops.increment(brightness,5)
@@ -255,7 +274,7 @@ def touchInput(input):
         elif(menu >= 1 and menu <=9):
             menu = ops.up(menu,1,4)
         elif(menu >= 11 and menu <= 19):
-            menu = ops.up(menu,11,13)
+            menu = ops.up(menu,11,14)
         elif(menu >= 21 and menu <= 29):
             menu = ops.up(menu,21,23)
         elif(menu >= 221 and menu <= 229):
@@ -394,7 +413,7 @@ for pin in BUTTONS:
 
 def main():
     loadSettings()
-    camera.initialize_camera(img_h[imageQuality],img_w[imageQuality])
+    camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
     lcd.init_disp()
     preview()
     signal.pause()

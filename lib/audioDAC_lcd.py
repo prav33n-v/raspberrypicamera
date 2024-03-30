@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 # Variables for display/screen
 brightness = 50
 SPI_SPEED_MHZ = 80
-#exposurevalue=["Auto","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400","1/320","1/250","1/200","1/160","1/125","1/100","1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/13","1/10","1/8","1/6","1/5","1/4","1/3","1/2.5","1/2","1/1.6","1/1.3",'1"','1.3"','1.6"','2"','2.5"','3"','4"','5"','6"','8"','10"','13"','15"','20"','25"','30"','60"','90"','120"','150"','180"']
+exposureValue=["Auto","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400","1/320","1/250","1/200","1/160","1/125","1/100","1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/13","1/10","1/8","1/6","1/5","1/4","1/3","1/2.5","1/2","1/1.6","1/1.3",'1"','1.3"','1.6"','2"','2.5"','3"','4"','5"','6"','8"','10"','13"','15"','20"','25"','30"','60"','90"','120"','150"','180"']
 
 # Define colors
 RED=(255,0,0)
@@ -110,11 +110,12 @@ def poweroff_disp():
 
 #
 
-def camera_home(raw,bnw,img,mode):
+def camera_home(raw,bnw,img,mode,exposure):
     img= img.resize((240,180), resample=Image.BICUBIC)
     image=Image.new("RGB",(240,240),color='black')
     image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
+    draw.text((0,5),"S = "+exposureValue[exposure],fill = GREEN, font = Font4)
     if( mode == 1 ):                # mode 1 - stills
         draw.text((210,5),"PIC", fill = GREEN,font = Font5)
     elif( mode == 2 ):              # mode 2 - timelapse stills
@@ -137,7 +138,7 @@ def camera_home(raw,bnw,img,mode):
     draw.text((220,215),"↑", fill = GREEN,font = Font4)
     st7789.display(image)
 
-def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath):
+def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure):
     image=Image.new("RGB",(240,240),color='black')
     draw = ImageDraw.Draw(image)
     if( menu >= 1 and menu <= 9):
@@ -167,6 +168,10 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             draw.rectangle([(220,130),(20,100)],fill = GRAY)
             draw.text((2,215),"-",fill = GREEN,font = Font4)
             draw.text((222,217),"+",fill = GREEN,font = Font4)
+        elif(menu == 14):
+            draw.rectangle([(220,160),(20,130)],fill = GRAY)
+            draw.text((2,215),"-",fill = GREEN,font = Font4)
+            draw.text((222,217),"+",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
 
@@ -194,6 +199,8 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             draw.text((25,100),"Size : 4000 x 2800",fill = WHITE,font = Font4)
         else:
             draw.text((25,100),"Size : 4656 x 3496",fill = WHITE,font = Font4)
+        draw.text((25,130),"Shutter : ",fill = WHITE,font = Font4)
+        draw.text((100,130),exposureValue[exposure],fill = WHITE,font = Font4)
 
     elif( menu >= 21 and menu <= 29):       # Shooting Mode menu
         draw.text((0,5),"Shooting Mode",fill = WHITE,font = Font3)
