@@ -48,6 +48,7 @@ img_h=[1600,2048,2464,3008,3264,3888,4000,4656]
 img_w=[1200,1536,1632,2000,2448,2592,2800,3496]
 image=Image.new("RGB",(240,240),color='black')
 quickSwitch=False
+exp=False
 
 # Define path for storing images
 storagePath = "/mnt/usb/"
@@ -94,7 +95,7 @@ def resetSettings():
     backlight.start(brightness)
 
 def preview():
-    lcd.camera_home(raw,bnw,camera.shoot_preview(bnw),mode,exposure)
+    lcd.camera_home(raw,bnw,camera.shoot_preview(bnw),mode,exposure,exp)
 
 def clickPic():
     global image_filename
@@ -106,7 +107,7 @@ def clickPic():
     image_filename = storagePath + "Stills/img_" + str(timestr)
     camera.shoot(raw,bnw,image_filename)
     image=Image.open(image_filename+".jpg")
-    lcd.camera_home(raw,bnw,image,mode,exposure)
+    lcd.camera_home(raw,bnw,image,mode,exposure,exp)
 
 def timelapse(path):
     global mode
@@ -117,7 +118,7 @@ def timelapse(path):
         time.sleep(interval)
         lcd.progress_bar(image_filename+".jpg",int(((x+1)/imageCount)*100),(x+1),imageCount,mode)
     image=Image.open(image_filename+".jpg")
-    lcd.camera_home(raw,bnw,image,mode,exposure)
+    lcd.camera_home(raw,bnw,image,mode,exposure,exp)
 
 def blink(count):
     for x in range (1,count+1,1):
@@ -130,7 +131,7 @@ def display():
     lcd.menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure)
 
 def touchInput(input):
-    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch,exposure
+    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch,exposure,exp
     if(input == 1):                 # BACK key on TouchPHAT
         touchphat.set_led(input, False)
         if(menu == 0):              # Do Nothing
@@ -181,13 +182,14 @@ def touchInput(input):
 
     elif(input == 3):               # 'B' key on TouchPHAT being used as DECREMENT ( - )
         touchphat.set_led(input, False)
-        if (menu == 0):     # Adjust Exposure time OR Shutter speed
+        if(menu == 0 and exp == False):
+            print("Feature to be added")
+        elif (menu == 0 and exp == True):     # Adjust Exposure time OR Shutter speed
             if(exposure < 53):
                 exposure = ops.increment(exposure,1)
             else:
                 blink(1)
             preview()
-            camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
         else:
             if( menu == 211 ):
                 if(contrast > -100):
@@ -228,13 +230,14 @@ def touchInput(input):
 
     elif(input == 4):               # 'C' key on TouchPHAT being used as INCREMENT ( + )
         touchphat.set_led(input, False)
-        if (menu == 0):             # Adjust Exposure time OR Shutter speed
+        if (menu == 0 and exp == False):
+            print("New feature to be added")
+        elif (menu == 0 and exp == True):             # Adjust Exposure time OR Shutter speed
             if(exposure > 0):
                 exposure = ops.decrement(exposure,1)
             else:
                 blink(1)
             preview()
-            camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
         else:
             if( menu == 211 ):
                 if(contrast < 100):
@@ -378,7 +381,7 @@ def handle_touch(event):
     touchInput(event.pad)
 
 def button_input(pin):
-    global bnw,raw,menu,quickSwitch
+    global bnw,raw,menu,quickSwitch,exp,img_h,img_w,imageQuality,exposureTime,exposure
     label = LABELS[BUTTONS.index(pin)]
     if(label == 'A'):     # Grayscale/Color quick switch
         if(menu == 0):
@@ -399,7 +402,9 @@ def button_input(pin):
             quickSwitch=False
             preview()
         else:
-            clickPic()
+            exp = not exp
+            camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
+            preview()
 
 # Loop through out buttons and attach the "handle_button" function to each
 # We're watching the "FALLING" edge (transition from 3.3V to Ground) and

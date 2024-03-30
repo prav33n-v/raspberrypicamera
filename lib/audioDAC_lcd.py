@@ -110,12 +110,15 @@ def poweroff_disp():
 
 #
 
-def camera_home(raw,bnw,img,mode,exposure):
+def camera_home(raw,bnw,img,mode,exposure,exp):
     img= img.resize((240,180), resample=Image.BICUBIC)
     image=Image.new("RGB",(240,240),color='black')
     image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
-    draw.text((0,5),"S = "+exposureValue[exposure],fill = GREEN, font = Font4)
+    if(exp):
+        draw.text((0,5),"SS:"+exposureValue[exposure],fill = RED, font = Font4)
+    else:
+        draw.text((0,5),"SS:"+exposureValue[exposure],fill = GREEN, font = Font4)
     if( mode == 1 ):                # mode 1 - stills
         draw.text((210,5),"PIC", fill = GREEN,font = Font5)
     elif( mode == 2 ):              # mode 2 - timelapse stills
