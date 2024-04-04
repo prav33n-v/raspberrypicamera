@@ -74,14 +74,14 @@ def progress_bar(image_file,value,x,imagecount,mode):
     # Draw a handy on-screen bar to show us the current brightness
     bar_width = int((210 / 100.0) * value)
     if( mode == 1 ):                # mode 1 - stills
-        draw.text((210,5),"PIC", fill = GREEN,font = Font5)
+        draw.text((210,5),"PIC", fill = YELLOW,font = Font5)
     elif( mode == 2 ):              # mode 2 - timelapse stills
-        draw.text((210,5),"TLS ", fill = GREEN,font = Font5)
+        draw.text((210,5),"TLS ", fill = YELLOW,font = Font5)
     elif( mode == 3 ):              # mode 2 - timelapse video
-        draw.text((210,5),"TLV ", fill = GREEN,font = Font5)
-    draw.text((10,5),str(x)+" / "+str(imagecount), fill = WHITE,font = Font5)
+        draw.text((210,5),"TLV ", fill = YELLOW,font = Font5)
+    draw.text((5,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = Font5)
     draw.rectangle([(15,225),(15,235)],fill = BLACK)
-    draw.rectangle((15, 225,15+bar_width, 235), WHITE)
+    draw.rectangle((15, 225,15+bar_width, 235), GRAY)
     st7789.display(new_image)
 
 #############################################################################
@@ -116,24 +116,24 @@ def camera_home(raw,bnw,img,mode,exposure,exp):
     image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
     if(exp):
-        draw.text((0,5),"SS:"+exposureValue[exposure],fill = RED, font = Font4)
+        draw.text((90,5),exposureValue[exposure],fill = GREEN, font = Font5)
     else:
-        draw.text((0,5),"SS:"+exposureValue[exposure],fill = GREEN, font = Font4)
+        draw.text((90,5),exposureValue[exposure],fill = RED, font = Font5)
     if( mode == 1 ):                # mode 1 - stills
-        draw.text((210,5),"PIC", fill = GREEN,font = Font5)
+        draw.text((210,5),"PIC", fill = YELLOW,font = Font5)
     elif( mode == 2 ):              # mode 2 - timelapse stills
-        draw.text((210,5),"TLS ", fill = GREEN,font = Font5)
+        draw.text((210,5),"TLS ", fill = YELLOW,font = Font5)
     elif( mode == 3 ):              # mode 2 - timelapse video
-        draw.text((210,5),"TLV ", fill = GREEN,font = Font5)
+        draw.text((210,5),"TLV ", fill = YELLOW,font = Font5)
     if(bnw):
-        draw.text((172,5),"BnW", fill = YELLOW,font = Font5)
+        draw.text((5,5),"BnW", fill = YELLOW,font = Font5)
     else:
-        draw.text((172,5),"CLR", fill = YELLOW,font = Font5)
+        draw.text((5,5),"CLR", fill = YELLOW,font = Font5)
     if (raw):
         if (bnw):
-            draw.text((120,5),"RAW +", fill = YELLOW,font = Font5)
+            draw.text((35,5)," RAW", fill = RED,font = Font5)
         else:
-            draw.text((120,5),"RAW +", fill = YELLOW,font = Font5)
+            draw.text((35,5)," RAW", fill = RED,font = Font5)
 
     draw.text((0,215),"↓", fill = GREEN,font = Font4)
     draw.text((20,215),"VIEW", fill = WHITE,font = Font5)
@@ -183,7 +183,7 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
         else:
             draw.text((25,40),"BnW : Disabled",fill = WHITE,font = Font4)
         if(raw):
-            draw.text((25,70),"File : RAW + JPG",fill = WHITE,font = Font4)
+            draw.text((25,70),"File : JPG + RAW",fill = WHITE,font = Font4)
         else:
             draw.text((25,70),"File : JPG",fill = WHITE,font = Font4)
         if(imageQuality == 0):

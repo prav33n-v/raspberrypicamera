@@ -49,12 +49,13 @@ img_w=[1200,1536,1632,2000,2448,2592,2800,3496]
 image=Image.new("RGB",(240,240),color='black')
 quickSwitch=False
 exp=False
+settingUpdated=False
 
 # Define path for storing images
 storagePath = "/mnt/usb/"
 
 def loadSettings():
-    global bnw,raw,brightness,interval,mode,imageCount,imageQuality
+    global bnw,raw,brightness,interval,mode,imageCount,imageQuality,exposure
     dir="config"
     filename="config.json"
     configFile= os.path.join(os.getcwd(),dir,filename)
@@ -65,7 +66,7 @@ def loadSettings():
     backlight.start(brightness)
 
 def saveSettings():
-    global bnw,raw,brightness,interval,mode,imageCount,imageQuality
+    global bnw,raw,brightness,interval,mode,imageCount,imageQuality,exposure
     settings = {
         "bnw":bnw,
         "raw":raw,
@@ -83,7 +84,7 @@ def saveSettings():
         json.dump(settings, outfile)
 
 def resetSettings():
-    global bnw,raw,brightness,interval,mode,imageCount,imageQuality
+    global bnw,raw,brightness,interval,mode,imageCount,imageQuality,exposure
     dir="config"
     filename="defaultConfig.json"
     configFile= os.path.join(os.getcwd(),dir,filename)
@@ -95,7 +96,7 @@ def resetSettings():
     backlight.start(brightness)
 
 def preview():
-    lcd.camera_home(raw,bnw,camera.shoot_preview(bnw),mode,exposure,exp)
+    lcd.camera_home(raw,bnw,camera.shoot_preview(bnw,exposureTime[exposure]),mode,exposure,exp)
 
 def clickPic():
     global image_filename
@@ -131,7 +132,7 @@ def display():
     lcd.menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure)
 
 def touchInput(input):
-    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch,exposure,exp
+    global storagePath,menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch,exposure,exp,settingUpdated
     if(input == 1):                 # BACK key on TouchPHAT
         touchphat.set_led(input, False)
         if(menu == 0):              # Do Nothing
@@ -146,7 +147,9 @@ def touchInput(input):
         else:
             if(menu >= 11 and menu <= 19):
                 menu=1
-                camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
+                if(settingUpdated):
+                    camera.initialize_camera(img_h[imageQuality],img_w[imageQuality],exposureTime[exposure])
+                    settingUpdated=False
             elif(menu >= 21):
                 menu= menu // 10
             else:
@@ -211,6 +214,7 @@ def touchInput(input):
             elif(menu == 14):
                 if(exposure < 53):
                     exposure = ops.increment(exposure,1)
+                    settingUpdated=True
                 else:
                     blink(3)
             elif(menu == 31):
@@ -222,6 +226,7 @@ def touchInput(input):
             elif(menu == 13):
                 if(imageQuality > 0):
                     imageQuality = ops.decrement(imageQuality,1)
+                    settingUpdated=True
                 else:
                     blink(3)
             else:
@@ -253,6 +258,7 @@ def touchInput(input):
             elif(menu == 14):
                 if(exposure > 0):
                     exposure = ops.decrement(exposure,1)
+                    settingUpdated=True
                 else:
                     blink(3)
             elif(menu == 31):
@@ -264,6 +270,7 @@ def touchInput(input):
             elif(menu == 13):
                 if(imageQuality < 7 ):
                     imageQuality = ops.increment(imageQuality,1)
+                    settingUpdated=True
                 else:
                     blink(3)
             else:
@@ -410,7 +417,7 @@ def button_input(pin):
 # We're watching the "FALLING" edge (transition from 3.3V to Ground) and
 # picking a generous bouncetime of 200ms to smooth out button presses.
 for pin in BUTTONS:
-    GPIO.add_event_detect(pin, GPIO.FALLING, button_input, bouncetime=500)
+    GPIO.add_event_detect(pin, GPIO.FALLING, button_input, bouncetime=1000)
 
 ###############################################################################################################
 # main()
