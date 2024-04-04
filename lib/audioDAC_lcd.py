@@ -74,12 +74,12 @@ def progress_bar(image_file,value,x,imagecount,mode):
     # Draw a handy on-screen bar to show us the current brightness
     bar_width = int((210 / 100.0) * value)
     if( mode == 1 ):                # mode 1 - stills
-        draw.text((210,5),"PIC", fill = YELLOW,font = Font5)
+        draw.text((210,5),"PIC", fill = RED,font = Font5)
     elif( mode == 2 ):              # mode 2 - timelapse stills
-        draw.text((210,5),"TLS ", fill = YELLOW,font = Font5)
+        draw.text((210,5),"TLS ", fill = RED,font = Font5)
     elif( mode == 3 ):              # mode 2 - timelapse video
-        draw.text((210,5),"TLV ", fill = YELLOW,font = Font5)
-    draw.text((5,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = Font5)
+        draw.text((210,5),"TLV ", fill = RED,font = Font5)
+    draw.text((80,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = Font5)
     draw.rectangle([(15,225),(15,235)],fill = BLACK)
     draw.rectangle((15, 225,15+bar_width, 235), GRAY)
     st7789.display(new_image)
@@ -116,28 +116,25 @@ def camera_home(raw,bnw,img,mode,exposure,exp):
     image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
     if(exp):
-        draw.text((90,5),exposureValue[exposure],fill = GREEN, font = Font5)
+        draw.text((80,5),exposureValue[exposure],fill = GREEN, font = Font5)
     else:
-        draw.text((90,5),exposureValue[exposure],fill = RED, font = Font5)
+        draw.text((80,5),exposureValue[exposure],fill = RED, font = Font5)
     if( mode == 1 ):                # mode 1 - stills
-        draw.text((210,5),"PIC", fill = YELLOW,font = Font5)
+        draw.text((210,5),"PIC", fill = RED,font = Font5)
     elif( mode == 2 ):              # mode 2 - timelapse stills
-        draw.text((210,5),"TLS ", fill = YELLOW,font = Font5)
+        draw.text((210,5),"TLS ", fill = RED,font = Font5)
     elif( mode == 3 ):              # mode 2 - timelapse video
-        draw.text((210,5),"TLV ", fill = YELLOW,font = Font5)
+        draw.text((210,5),"TLV ", fill = RED,font = Font5)
     if(bnw):
-        draw.text((5,5),"BnW", fill = YELLOW,font = Font5)
+        draw.text((5,5),"BnW", fill = RED,font = Font5)
     else:
-        draw.text((5,5),"CLR", fill = YELLOW,font = Font5)
+        draw.text((5,5),"CLR", fill = RED,font = Font5)
     if (raw):
-        if (bnw):
-            draw.text((35,5)," RAW", fill = RED,font = Font5)
-        else:
-            draw.text((35,5)," RAW", fill = RED,font = Font5)
+        draw.text((35,5)," RAW", fill = GREEN,font = Font5)
 
     draw.text((0,215),"↓", fill = GREEN,font = Font4)
-    draw.text((20,215),"VIEW", fill = WHITE,font = Font5)
-    draw.text((183,215),"MENU", fill = WHITE,font = Font5)
+    draw.text((20,215),"VIEW", fill = RED,font = Font5)
+    draw.text((183,215),"MENU", fill = RED,font = Font5)
     draw.text((220,215),"↑", fill = GREEN,font = Font4)
     st7789.display(image)
 
@@ -169,12 +166,12 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             draw.rectangle([(220,100),(20,70)],fill = GRAY)
         elif(menu == 13):
             draw.rectangle([(220,130),(20,100)],fill = GRAY)
-            draw.text((2,215),"-",fill = GREEN,font = Font4)
-            draw.text((222,217),"+",fill = GREEN,font = Font4)
+            draw.text((2,102),"-",fill = GREEN,font = Font4)
+            draw.text((222,102),"+",fill = GREEN,font = Font4)
         elif(menu == 14):
             draw.rectangle([(220,160),(20,130)],fill = GRAY)
-            draw.text((2,215),"-",fill = GREEN,font = Font4)
-            draw.text((222,217),"+",fill = GREEN,font = Font4)
+            draw.text((2,132),"-",fill = GREEN,font = Font4)
+            draw.text((222,132),"+",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
 
@@ -235,12 +232,14 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
         draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
         draw.text((25,70),"Timelapse Stills",fill = GREEN,font = Font4)
         draw.text((25,100),"Timelapse Video",fill = WHITE,font = Font4)
-        draw.text((2,215),"-",fill = GREEN,font = Font4)
-        draw.text((222,217),"+",fill = GREEN,font = Font4)
         if ( menu == 221):
             draw.rectangle([(220,160),(20,130)],fill = GRAY)
+            draw.text((2,132),"-",fill = GREEN,font = Font4)
+            draw.text((222,132),"+",fill = GREEN,font = Font4)
         elif(menu == 222):
             draw.rectangle([(220,190),(20,160)],fill = GRAY)
+            draw.text((2,162),"-",fill = GREEN,font = Font4)
+            draw.text((222,162),"+",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
         draw.text((25,130),"Interval(sec)",fill = YELLOW,font = Font4)
@@ -254,12 +253,14 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
         draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
         draw.text((25,70),"Timelapse Stills",fill = WHITE,font = Font4)
         draw.text((25,100),"Timelapse Video",fill = GREEN,font = Font4)
-        draw.text((2,215),"-",fill = GREEN,font = Font4)
-        draw.text((222,217),"+",fill = GREEN,font = Font4)
         if ( menu == 231):
             draw.rectangle([(220,160),(20,130)],fill = GRAY)
+            draw.text((2,132),"-",fill = GREEN,font = Font4)
+            draw.text((222,132),"+",fill = GREEN,font = Font4)
         elif(menu == 232):
             draw.rectangle([(220,190),(20,160)],fill = GRAY)
+            draw.text((2,162),"-",fill = GREEN,font = Font4)
+            draw.text((222,162),"+",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
         draw.text((25,130),"Interval(sec)",fill = YELLOW,font = Font4)
@@ -271,8 +272,8 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
         draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
         if(menu == 31):
             draw.rectangle([(220,70),(20,40)],fill = GRAY)
-            draw.text((2,215),"-",fill = GREEN,font = Font4)
-            draw.text((222,217),"+",fill = GREEN,font = Font4)
+            draw.text((2,42),"-",fill = GREEN,font = Font4)
+            draw.text((222,42),"+",fill = GREEN,font = Font4)
             draw_bar(image,brightness)
         elif(menu == 32):
             draw.rectangle([(220,100),(20,70)],fill = GRAY)
