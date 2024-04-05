@@ -121,6 +121,10 @@ def timelapse(path):
     image=Image.open(image_filename+".jpg")
     lcd.camera_home(raw,bnw,image,mode,exposure,exp)
 
+def bracketing(path):
+    global mode
+    print("brcketing code yet to be implemented !!!")
+
 def blink(count):
     for x in range (1,count+1,1):
         for y in range (1,7,1):
@@ -166,11 +170,13 @@ def touchInput(input):
             elif(menu >= 11 and menu <= 19):
                 menu = ops.down(menu,11,14)
             elif(menu >= 21 and menu <= 29):
-                menu = ops.down(menu,21,23)
+                menu = ops.down(menu,21,24)
             elif(menu >= 221 and menu <= 229):
                 menu = ops.down(menu,221,222)
             elif(menu >= 231 and menu <= 239):
                 menu = ops.down(menu,231,232)
+            elif(menu >= 241 and menu <= 249):
+                menu = ops.down(menu,241,242)
             elif(menu >= 31 and menu <= 39):
                 menu = ops.down(menu,31,33)
             elif(menu >= 321 and menu <= 329):
@@ -201,12 +207,23 @@ def touchInput(input):
                     blink(3)
             elif(menu == 212):
                 metering = ops.up(metering,0,1)
-            elif(menu == 231 or menu == 221):
+            elif(menu == 221):
+                if(exposure < (53-(imageCount/2))):
+                    exposure = ops.increment(exposure,1)
+                    settingUpdated=True
+                else:
+                    blink(3)
+            elif(menu == 222):
+                if(imageCount > 3):
+                    imageCount = ops.decrement(imageCount,2)
+                else:
+                    blink(3)
+            elif(menu == 241 or menu == 231):
                 if(interval > 1):
                     interval = ops.decrement(interval,1)
                 else:
                     blink(3)
-            elif(menu == 232 or menu == 222):
+            elif(menu == 242 or menu == 232):
                 if(imageCount > 10):
                     imageCount = ops.decrement(imageCount,10)
                 else:
@@ -251,9 +268,20 @@ def touchInput(input):
                     blink(3)
             elif(menu == 212):
                 metering = ops.down(metering,0,1)
-            elif(menu == 231 or menu == 221):
+            elif(menu == 221):
+                if(exposure > (0+(imageCount/2))):
+                    exposure = ops.decrement(exposure,1)
+                    settingUpdated=True
+                else:
+                    blink(3)
+            elif(menu == 222):
+                if(imageCount < 9):
+                    imageCount = ops.increment(imageCount,2)
+                else:
+                    blink(3)
+            elif(menu == 241 or menu == 231):
                 interval = ops.increment(interval,1)
-            elif(menu == 232 or menu == 222):
+            elif(menu == 242 or menu == 232):
                 imageCount = ops.increment(imageCount,10)
             elif(menu == 14):
                 if(exposure > 0):
@@ -286,11 +314,13 @@ def touchInput(input):
         elif(menu >= 11 and menu <= 19):
             menu = ops.up(menu,11,14)
         elif(menu >= 21 and menu <= 29):
-            menu = ops.up(menu,21,23)
+            menu = ops.up(menu,21,24)
         elif(menu >= 221 and menu <= 229):
             menu = ops.up(menu,221,222)
         elif(menu >= 231 and menu <= 239):
             menu = ops.up(menu,231,232)
+        elif(menu >= 241 and menu <= 249):
+            menu = ops.up(menu,241,242)
         elif(menu >= 31 and menu <= 39):
             menu = ops.up(menu,31,33)
         elif(menu >= 321 and menu <= 329):
@@ -307,7 +337,16 @@ def touchInput(input):
         if (menu == 0):     # Capture
             if(mode == 1):  # Single shot
                 clickPic()
-            elif(mode==2):  # Start Timelapse Stills capture
+            elif(mode==2):  # Bracketing
+                timestr = time.strftime("%Y%m%d-%H%M%S")
+                if(os.path.exists(storagePath+"Bracketing/")):
+                    print("Writing in Bracketing folder'")
+                else:
+                    os.mkdir(storagePath+"Bracketing/")
+                path = storagePath + "Bracketing/BKT_" + str(timestr)+"/"
+                bracketing(path)
+
+            elif(mode==3):  # Start Timelapse Stills capture
                 timestr = time.strftime("%Y%m%d-%H%M%S")
                 if(os.path.exists(storagePath+"Timelapse/")):
                     print("Writing in Timelapse folder'")
@@ -315,7 +354,7 @@ def touchInput(input):
                     os.mkdir(storagePath+"Timelapse/")
                 path = storagePath + "Timelapse/TLS_" + str(timestr)+"/"
                 timelapse(path)
-            elif(mode==3):
+            elif(mode==4):
                 timestr = time.strftime("%Y%m%d-%H%M%S")
                 if(os.path.exists(storagePath+"Timelapse_Video/")):
                     print("Writing in Timelapse_Video folder'")
@@ -334,12 +373,16 @@ def touchInput(input):
                 menu = 21
             elif(menu == 21 ):   # Single shot mode selected
                 mode = 1
-            elif(menu == 22):    # Timelapse Stills mode selected open submenu
+            elif(menu == 22):
                 menu = 221
                 mode = 2
-            elif(menu == 23):    # Timelapse Video mode selected open submenu
+                imageCount = 5
+            elif(menu == 23):    # Timelapse Stills mode selected open submenu
                 menu = 231
                 mode = 3
+            elif(menu == 24):    # Timelapse Video mode selected open submenu
+                menu = 241
+                mode = 4
             elif(menu == 3):     # System menu selected
                 menu = 31
             elif(menu == 32):    # Storage space menu selected

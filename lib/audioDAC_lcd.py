@@ -121,10 +121,12 @@ def camera_home(raw,bnw,img,mode,exposure,exp):
         draw.text((80,5),exposureValue[exposure],fill = RED, font = Font5)
     if( mode == 1 ):                # mode 1 - stills
         draw.text((210,5),"PIC", fill = RED,font = Font5)
-    elif( mode == 2 ):              # mode 2 - timelapse stills
-        draw.text((210,5),"TLS ", fill = RED,font = Font5)
-    elif( mode == 3 ):              # mode 2 - timelapse video
-        draw.text((210,5),"TLV ", fill = RED,font = Font5)
+    elif( mode == 2 ):              # mode 2 - bracketing
+        draw.text((210,5),"BKT", fill = RED,font = Font5)
+    elif( mode == 3 ):              # mode 2 - timelapse stills
+        draw.text((210,5),"TLS", fill = RED,font = Font5)
+    elif( mode == 4 ):              # mode 2 - timelapse video
+        draw.text((210,5),"TLV", fill = RED,font = Font5)
     if(bnw):
         draw.text((5,5),"BnW", fill = RED,font = Font5)
     else:
@@ -210,63 +212,96 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             draw.rectangle([(220,100),(20,70)],fill = GRAY)
         elif(menu == 23):
             draw.rectangle([(220,130),(20,100)],fill = GRAY)
+        elif(menu == 24):
+            draw.rectangle([(220,160),(20,130)],fill = GRAY)
         else:
             print("ERROR !")
         if ( mode == 1):                   # Single Shot
             draw.text((25,40),"Single shot",fill = GREEN,font = Font4)
-            draw.text((25,70),"Timelapse Stills",fill = WHITE,font = Font4)
-            draw.text((25,100),"Timelapse Video",fill = WHITE,font = Font4)
-        elif(mode == 2):                   # Timelapse stills
+            draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
+            draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
+            draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
+        elif(mode == 2):                   # Exposure Bracketing
             draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-            draw.text((25,70),"Timelapse Stills",fill = GREEN,font = Font4)
-            draw.text((25,100),"Timelapse Video",fill = WHITE,font = Font4)
-        elif(mode == 3):                   # Timelapse Video
+            draw.text((25,70),"Exposure Bracketing",fill = GREEN,font = Font4)
+            draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
+            draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
+        elif(mode == 3):                   # Timelapse Stills
             draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-            draw.text((25,70),"Timelapse Stills",fill = WHITE,font = Font4)
-            draw.text((25,100),"Timelapse Video",fill = GREEN,font = Font4)
+            draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
+            draw.text((25,100),"Timelapse Stills",fill = GREEN,font = Font4)
+            draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
+        elif(mode == 4):                   # Timelapse Video
+            draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
+            draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
+            draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
+            draw.text((25,130),"Timelapse Video",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
 
     elif( menu >= 221 and menu <= 229 ):    # Shooting mode : Timelapse stills submenu
-        draw.text((0,5),"Mode Select",fill = WHITE,font = Font3)
+        draw.text((0,5),"Bracketing Settings",fill = YELLOW,font = Font4)
         draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-        draw.text((25,70),"Timelapse Stills",fill = GREEN,font = Font4)
-        draw.text((25,100),"Timelapse Video",fill = WHITE,font = Font4)
+        draw.text((25,70),"Exposure Bracketing",fill = GREEN,font = Font4)
+        draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
+        draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
         if ( menu == 221):
-            draw.rectangle([(220,160),(20,130)],fill = GRAY)
-            draw.text((2,132),"-",fill = GREEN,font = Font4)
-            draw.text((222,132),"+",fill = GREEN,font = Font4)
+            draw.rectangle([(220,190),(20,160)],fill = GRAY)
+            draw.text((2,162),"-",fill = GREEN,font = Font4)
+            draw.text((222,162),"+",fill = GREEN,font = Font4)
         elif(menu == 222):
-            draw.rectangle([(220,190),(20,160)],fill = GRAY)
-            draw.text((2,162),"-",fill = GREEN,font = Font4)
-            draw.text((222,162),"+",fill = GREEN,font = Font4)
+            draw.rectangle([(220,220),(20,190)],fill = GRAY)
+            draw.text((2,192),"-",fill = GREEN,font = Font4)
+            draw.text((222,192),"+",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
-        draw.text((25,130),"Interval(sec)",fill = YELLOW,font = Font4)
-        draw.text((25,160),"No. of shots",fill = YELLOW,font = Font4)
-        draw.text((140,130),"= "+str(interval),fill = YELLOW,font = Font4)
-        draw.text((140,160),"= "+str(imageCount),fill = YELLOW,font = Font4)
+        draw.text((25,160),"Exposure Time",fill = YELLOW,font = Font4)
+        draw.text((25,190),"No. of shots",fill = YELLOW,font = Font4)
+        draw.text((140,160),"= "+str(exposureValue[exposure]),fill = YELLOW,font = Font4)
+        draw.text((140,190),"= "+str(imageCount),fill = YELLOW,font = Font4)
 
-
-    elif( menu >= 231 and menu <= 239 ):    # Shooting mode : Timelapse video submenu
-        draw.text((0,5),"Mode Select",fill = WHITE,font = Font3)
+    elif( menu >= 231 and menu <= 239 ):    # Shooting mode : Timelapse stills submenu
+        draw.text((0,5),"Timelapse Stills Settings",fill = YELLOW,font = Font4)
         draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-        draw.text((25,70),"Timelapse Stills",fill = WHITE,font = Font4)
-        draw.text((25,100),"Timelapse Video",fill = GREEN,font = Font4)
+        draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
+        draw.text((25,100),"Timelapse Stills",fill = GREEN,font = Font4)
+        draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
         if ( menu == 231):
-            draw.rectangle([(220,160),(20,130)],fill = GRAY)
-            draw.text((2,132),"-",fill = GREEN,font = Font4)
-            draw.text((222,132),"+",fill = GREEN,font = Font4)
-        elif(menu == 232):
             draw.rectangle([(220,190),(20,160)],fill = GRAY)
             draw.text((2,162),"-",fill = GREEN,font = Font4)
             draw.text((222,162),"+",fill = GREEN,font = Font4)
+        elif(menu == 232):
+            draw.rectangle([(220,220),(20,190)],fill = GRAY)
+            draw.text((2,192),"-",fill = GREEN,font = Font4)
+            draw.text((222,192),"+",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
-        draw.text((25,130),"Interval(sec)",fill = YELLOW,font = Font4)
-        draw.text((25,160),"No. of shots ",fill = YELLOW,font = Font4)
-        draw.text((140,130),"= "+str(interval),fill = YELLOW,font = Font4)
-        draw.text((140,160),"= "+str(imageCount),fill = YELLOW,font = Font4)
+        draw.text((25,160),"Interval(sec)",fill = YELLOW,font = Font4)
+        draw.text((25,190),"No. of shots",fill = YELLOW,font = Font4)
+        draw.text((140,160),"= "+str(interval),fill = YELLOW,font = Font4)
+        draw.text((140,190),"= "+str(imageCount),fill = YELLOW,font = Font4)
+
+
+    elif( menu >= 241 and menu <= 249 ):    # Shooting mode : Timelapse video submenu
+        draw.text((0,5),"Timelapse Video Settings",fill = YELLOW,font = Font4)
+        draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
+        draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
+        draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
+        draw.text((25,130),"Timelapse Video",fill = GREEN,font = Font4)
+        if ( menu == 241):
+            draw.rectangle([(220,190),(20,160)],fill = GRAY)
+            draw.text((2,162),"-",fill = GREEN,font = Font4)
+            draw.text((222,162),"+",fill = GREEN,font = Font4)
+        elif(menu == 242):
+            draw.rectangle([(220,220),(20,190)],fill = GRAY)
+            draw.text((2,192),"-",fill = GREEN,font = Font4)
+            draw.text((222,192),"+",fill = GREEN,font = Font4)
+        else:
+            print("ERROR !")
+        draw.text((25,160),"Interval(sec)",fill = YELLOW,font = Font4)
+        draw.text((25,190),"No. of shots ",fill = YELLOW,font = Font4)
+        draw.text((140,160),"= "+str(interval),fill = YELLOW,font = Font4)
+        draw.text((140,190),"= "+str(imageCount),fill = YELLOW,font = Font4)
 
     elif( menu >= 31 and menu <= 39 ):      # System Settings
         draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
