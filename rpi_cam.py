@@ -40,6 +40,7 @@ brightness=5  # Range = 1 - 100
 mode=1          # Value to select shooting mode Stills/Timelapse Stills/Timelapse Video
 interval=1      # Interval between each shot for timelapse
 imageCount=10   # Default number of shots for timelapse
+bktCount=5      # Default number of shots for bracketing
 imageQuality=4    # Value used to select output image resolution/size
 exposure=0
 # Exposure time OR Shutter Speed in microseconds
@@ -122,8 +123,19 @@ def timelapse(path):
     lcd.camera_home(raw,bnw,image,mode,exposure,exp)
 
 def bracketing(path):
-    global mode
-    print("brcketing code yet to be implemented !!!")
+    global mode,exposure,bktCount,raw
+    os.mkdir(path)
+    num = (bktCount//2) * (-1)
+    if((exposure + num) < 0):
+        exposure = exposure + (bktCount//2) + 1
+    if((exposure - num) > 53 ):
+        exposure = exposure - (bktCount//2) - 1
+    for x in range(bktCount):
+        image_filename=path+"BKT_"+str(x)
+        bktExposure = exposure + num + x
+        camera.shoot(raw,False,image_filename)
+        lcd.progress_bar(image_filename+".jpg",int(((x+1)/bktCount)*100),(x+1),bktCount,mode)
+    preview()
 
 def blink(count):
     for x in range (1,count+1,1):
@@ -132,11 +144,11 @@ def blink(count):
             touchphat.set_led(y, False)
 
 def display():
-    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,exposure
-    lcd.menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure)
+    global menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,exposure,bktCount
+    lcd.menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure,bktCount)
 
 def touchInput(input):
-    global storagePath,menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch,exposure,exp,settingUpdated
+    global storagePath,menu,raw,bnw,brightness,mode,interval,imageCount,imageQuality,quickSwitch,exposure,exp,settingUpdated,bktCount
     if(input == 1):                 # BACK key on TouchPHAT
         touchphat.set_led(input, False)
         if(menu == 0):              # Do Nothing
@@ -208,14 +220,14 @@ def touchInput(input):
             elif(menu == 212):
                 metering = ops.up(metering,0,1)
             elif(menu == 221):
-                if(exposure < (53-(imageCount/2))):
+                if(exposure < (53-(bktCount/2))):
                     exposure = ops.increment(exposure,1)
                     settingUpdated=True
                 else:
                     blink(3)
             elif(menu == 222):
-                if(imageCount > 3):
-                    imageCount = ops.decrement(imageCount,2)
+                if(bktCount > 3):
+                    bktCount = ops.decrement(bktCount,2)
                 else:
                     blink(3)
             elif(menu == 241 or menu == 231):
@@ -269,14 +281,14 @@ def touchInput(input):
             elif(menu == 212):
                 metering = ops.down(metering,0,1)
             elif(menu == 221):
-                if(exposure > (0+(imageCount/2))):
+                if(exposure > (0+(bktCount/2))):
                     exposure = ops.decrement(exposure,1)
                     settingUpdated=True
                 else:
                     blink(3)
             elif(menu == 222):
-                if(imageCount < 9):
-                    imageCount = ops.increment(imageCount,2)
+                if(bktCount < 9):
+                    bktCount = ops.increment(bktCount,2)
                 else:
                     blink(3)
             elif(menu == 241 or menu == 231):
@@ -373,10 +385,9 @@ def touchInput(input):
                 menu = 21
             elif(menu == 21 ):   # Single shot mode selected
                 mode = 1
-            elif(menu == 22):
+            elif(menu == 22):    # Bracketing mode selected open submenu
                 menu = 221
                 mode = 2
-                imageCount = 5
             elif(menu == 23):    # Timelapse Stills mode selected open submenu
                 menu = 231
                 mode = 3

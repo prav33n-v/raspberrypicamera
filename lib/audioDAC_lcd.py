@@ -75,9 +75,9 @@ def progress_bar(image_file,value,x,imagecount,mode):
     bar_width = int((210 / 100.0) * value)
     if( mode == 1 ):                # mode 1 - stills
         draw.text((210,5),"PIC", fill = RED,font = Font5)
-    elif( mode == 2 ):              # mode 2 - timelapse stills
+    elif( mode == 3 ):              # mode 3 - timelapse stills
         draw.text((210,5),"TLS ", fill = RED,font = Font5)
-    elif( mode == 3 ):              # mode 2 - timelapse video
+    elif( mode == 4 ):              # mode 4 - timelapse video
         draw.text((210,5),"TLV ", fill = RED,font = Font5)
     draw.text((80,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = Font5)
     draw.rectangle([(15,225),(15,235)],fill = BLACK)
@@ -116,9 +116,9 @@ def camera_home(raw,bnw,img,mode,exposure,exp):
     image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
     if(exp):
-        draw.text((80,5),exposureValue[exposure],fill = GREEN, font = Font5)
+        draw.text((100,5),exposureValue[exposure],fill = GREEN, font = Font5)
     else:
-        draw.text((80,5),exposureValue[exposure],fill = RED, font = Font5)
+        draw.text((100,5),exposureValue[exposure],fill = RED, font = Font5)
     if( mode == 1 ):                # mode 1 - stills
         draw.text((210,5),"PIC", fill = RED,font = Font5)
     elif( mode == 2 ):              # mode 2 - bracketing
@@ -128,11 +128,11 @@ def camera_home(raw,bnw,img,mode,exposure,exp):
     elif( mode == 4 ):              # mode 2 - timelapse video
         draw.text((210,5),"TLV", fill = RED,font = Font5)
     if(bnw):
-        draw.text((5,5),"BnW", fill = RED,font = Font5)
+        draw.text((5,5),"B & W", fill = WHITE,font = Font5)
     else:
-        draw.text((5,5),"CLR", fill = RED,font = Font5)
+        draw.text((5,5),"COLOR", fill = RED,font = Font5)
     if (raw):
-        draw.text((35,5)," RAW", fill = GREEN,font = Font5)
+        draw.text((60,5),"RAW", fill = GREEN,font = Font5)
 
     draw.text((0,215),"↓", fill = GREEN,font = Font4)
     draw.text((20,215),"VIEW", fill = RED,font = Font5)
@@ -140,7 +140,7 @@ def camera_home(raw,bnw,img,mode,exposure,exp):
     draw.text((220,215),"↑", fill = GREEN,font = Font4)
     st7789.display(image)
 
-def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure):
+def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure,bktCount):
     image=Image.new("RGB",(240,240),color='black')
     draw = ImageDraw.Draw(image)
     if( menu >= 1 and menu <= 9):
@@ -178,31 +178,31 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             print("ERROR !")
 
         if(bnw):
-            draw.text((25,40),"BnW : Enabled",fill = WHITE,font = Font4)
+            draw.text((25,40),"B & W :            Enabled",fill = WHITE,font = Font4)
         else:
-            draw.text((25,40),"BnW : Disabled",fill = WHITE,font = Font4)
+            draw.text((25,40),"B & W :            Disabled",fill = WHITE,font = Font4)
         if(raw):
-            draw.text((25,70),"File : JPG + RAW",fill = WHITE,font = Font4)
+            draw.text((25,70),"File :          JPG + RAW",fill = WHITE,font = Font4)
         else:
-            draw.text((25,70),"File : JPG",fill = WHITE,font = Font4)
+            draw.text((25,70),"File :               JPG only",fill = WHITE,font = Font4)
         if(imageQuality == 0):
-            draw.text((25,100),"Size : 1600 x 1200",fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :      1600 x 1200",fill = WHITE,font = Font4)
         elif(imageQuality == 1):
-            draw.text((25,100),"Size : 2048 x 1536",fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :     2048 x 1536",fill = WHITE,font = Font4)
         elif(imageQuality == 2):
-            draw.text((25,100),"Size : 2464 x 1632",fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :     2464 x 1632",fill = WHITE,font = Font4)
         elif(imageQuality == 3):
-            draw.text((25,100),"Size : 3008 x 2000",fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :    3008 x 2000",fill = WHITE,font = Font4)
         elif(imageQuality == 4):
-            draw.text((25,100),"Size : 3264 x 2448",fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :    3264 x 2448",fill = WHITE,font = Font4)
         elif(imageQuality == 5):
-            draw.text((25,100),"Size : 3888 x 2592",fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :    3888 x 2592",fill = WHITE,font = Font4)
         elif(imageQuality == 6):
-            draw.text((25,100),"Size : 4000 x 2800",fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :    4000 x 2800",fill = WHITE,font = Font4)
         else:
-            draw.text((25,100),"Size : 4656 x 3496",fill = WHITE,font = Font4)
-        draw.text((25,130),"Shutter : ",fill = WHITE,font = Font4)
-        draw.text((100,130),exposureValue[exposure],fill = WHITE,font = Font4)
+            draw.text((25,100),"Size :    4656 x 3496",fill = WHITE,font = Font4)
+        draw.text((25,130),"Shutter Speed : ",fill = WHITE,font = Font4)
+        draw.text((155,130),exposureValue[exposure],fill = WHITE,font = Font4)
 
     elif( menu >= 21 and menu <= 29):       # Shooting Mode menu
         draw.text((0,5),"Shooting Mode",fill = WHITE,font = Font3)
@@ -255,10 +255,10 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             draw.text((222,192),"+",fill = GREEN,font = Font4)
         else:
             print("ERROR !")
-        draw.text((25,160),"Exposure Time",fill = YELLOW,font = Font4)
+        draw.text((25,160),"Shutter Speed",fill = YELLOW,font = Font4)
         draw.text((25,190),"No. of shots",fill = YELLOW,font = Font4)
-        draw.text((140,160),"= "+str(exposureValue[exposure]),fill = YELLOW,font = Font4)
-        draw.text((140,190),"= "+str(imageCount),fill = YELLOW,font = Font4)
+        draw.text((140,160),": "+str(exposureValue[exposure]),fill = YELLOW,font = Font4)
+        draw.text((140,190),": "+str(bktCount),fill = YELLOW,font = Font4)
 
     elif( menu >= 231 and menu <= 239 ):    # Shooting mode : Timelapse stills submenu
         draw.text((0,5),"Timelapse Stills Settings",fill = YELLOW,font = Font4)
@@ -278,8 +278,8 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             print("ERROR !")
         draw.text((25,160),"Interval(sec)",fill = YELLOW,font = Font4)
         draw.text((25,190),"No. of shots",fill = YELLOW,font = Font4)
-        draw.text((140,160),"= "+str(interval),fill = YELLOW,font = Font4)
-        draw.text((140,190),"= "+str(imageCount),fill = YELLOW,font = Font4)
+        draw.text((140,160),": "+str(interval),fill = YELLOW,font = Font4)
+        draw.text((140,190),": "+str(imageCount),fill = YELLOW,font = Font4)
 
 
     elif( menu >= 241 and menu <= 249 ):    # Shooting mode : Timelapse video submenu
@@ -300,8 +300,8 @@ def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,st
             print("ERROR !")
         draw.text((25,160),"Interval(sec)",fill = YELLOW,font = Font4)
         draw.text((25,190),"No. of shots ",fill = YELLOW,font = Font4)
-        draw.text((140,160),"= "+str(interval),fill = YELLOW,font = Font4)
-        draw.text((140,190),"= "+str(imageCount),fill = YELLOW,font = Font4)
+        draw.text((140,160),": "+str(interval),fill = YELLOW,font = Font4)
+        draw.text((140,190),": "+str(imageCount),fill = YELLOW,font = Font4)
 
     elif( menu >= 31 and menu <= 39 ):      # System Settings
         draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
