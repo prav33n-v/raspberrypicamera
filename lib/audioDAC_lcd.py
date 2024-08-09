@@ -4,7 +4,6 @@ from ST7789 import ST7789
 from PIL import Image, ImageDraw, ImageFont
 
 # Variables for display/screen
-brightness = 50
 SPI_SPEED_MHZ = 80
 exposureValue=["Auto","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400","1/320","1/250","1/200","1/160","1/125","1/100","1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/13","1/10","1/8","1/6","1/5","1/4","1/3","1/2.5","1/2","1/1.6","1/1.3",'1"','1.3"','1.6"','2"','2.5"','3"','4"','5"','6"','8"','10"','13"','15"','20"','25"','30"','60"','90"','120"','150"','180"']
 
@@ -50,8 +49,8 @@ def draw_bar(image,value):
     draw = ImageDraw.Draw(image)
     # Draw a handy on-screen bar to show us the current brightness
     bar_width = int((210 / 100.0) * value)
-    draw.rectangle([(15,225),(15,235)],fill = BLACK)
-    draw.rectangle((15, 225,5+bar_width, 235), WHITE)
+    draw.rectangle([(15,210),(15,215)],fill = BLACK)
+    draw.rectangle((15, 210,5+bar_width, 215), WHITE)
     # return the resulting image
     return image
 
@@ -80,8 +79,8 @@ def progress_bar(image_file,value,x,imagecount,mode):
     elif( mode == 4 ):              # mode 4 - timelapse video
         draw.text((210,5),"TLV ", fill = RED,font = Font5)
     draw.text((80,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = Font5)
-    draw.rectangle([(15,225),(15,235)],fill = BLACK)
-    draw.rectangle((15, 225,15+bar_width, 235), GRAY)
+    draw.rectangle([(15,210),(15,215)],fill = BLACK)
+    draw.rectangle((15, 210,15+bar_width, 215), GRAY)
     st7789.display(new_image)
 
 #############################################################################
@@ -92,7 +91,7 @@ def init_disp():
     image=Image.new("RGB",(240,240),color='black')
     draw = ImageDraw.Draw(image)
     draw.text((45,70),"PiCam", fill = GREEN,font = Font1)
-    draw.text((75,130),"INFRA", fill = WHITE,font = Font4)
+    draw.text((75,130),"INFRA", fill = YELLOW,font = Font4)
     draw.text((130,130),"RED", fill = RED,font = Font4)
     st7789.display(image)
 
@@ -110,10 +109,38 @@ def poweroff_disp():
 
 #
 
-def camera_home(raw,bnw,img,mode,exposure,exp):
-    img= img.resize((240,180), resample=Image.BICUBIC)
+def menu_display(header,menu_item,menu):
+    item_number = menu % 10
     image=Image.new("RGB",(240,240),color='black')
-    image.paste(img,(0,30))
+    draw = ImageDraw.Draw(image)
+################# Interface Buttons #########################
+    draw.text((5,215),"↓", fill = RED,font = Font3)
+    draw.text((85,215),"<", fill = RED,font = Font4)
+    draw.text((145,215),">",fill = RED,font = Font4)
+    draw.text((212,215),"↑", fill = RED,font = Font3)
+#############################################################
+    draw.text((0,5),header,fill = WHITE,font = Font3)
+    count = 0
+    for item in menu_item:
+        if(item_number == (count+1)):
+            draw.rectangle([(220,(37+(25*(count+1)))),(20,(37+(25*count)))],fill = GRAY)
+            draw.text((25,(35+(25*count))),item,fill = GREEN,font = Font4)
+        else:
+            draw.text((25,(35+(25*count))),item,fill = WHITE,font = Font4)
+        count += 1
+    
+    st7789.display(image)
+
+#def camera_home(raw,bnw,mode,img,exposure,exp):
+#    img= img.resize((240,180), resample=Image.BICUBIC)
+def camera_home():
+    raw=True
+    bnw=True
+    mode=1
+    exposure = 0
+    exp=False
+    image=Image.new("RGB",(240,240),color='black')
+#    image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
     if(exp):
         draw.text((100,5),exposureValue[exposure],fill = GREEN, font = Font5)
@@ -134,268 +161,21 @@ def camera_home(raw,bnw,img,mode,exposure,exp):
     if (raw):
         draw.text((60,5),"RAW", fill = GREEN,font = Font5)
 
-    draw.text((0,215),"↓", fill = GREEN,font = Font4)
-    draw.text((20,215),"VIEW", fill = RED,font = Font5)
-    draw.text((183,215),"MENU", fill = RED,font = Font5)
-    draw.text((220,215),"↑", fill = GREEN,font = Font4)
+    draw.text((5,215),"[•]", fill = RED,font = Font4)
+    draw.text((85,215),"<", fill = RED,font = Font4)
+    draw.text((145,215),">",fill = RED,font = Font4)
+    draw.text((211,202),"—", fill = RED,font = Font3)
+    draw.text((211,210),"—", fill = RED,font = Font3)
+    draw.text((211,218),"—", fill = RED,font = Font3)
     st7789.display(image)
 
-def menuDisplay(raw,bnw,menu,mode,brightness,interval,imageCount,imageQuality,storagePath,exposure,bktCount):
-    image=Image.new("RGB",(240,240),color='black')
-    draw = ImageDraw.Draw(image)
+def menu_control(display_config,shoot_config,camera_config):
+    menu = display_config.get("menu")
     if( menu >= 1 and menu <= 9):
-        draw.text((0,0),"Menu", fill = WHITE,font = Font3)
-        if (menu == 1):             # Image Settings
-            draw.rectangle([(220,70),(20,40)],fill = GRAY)
-        elif (menu == 2):           # Shooting Mode
-            draw.rectangle([(220,100),(20,70)],fill = GRAY)
-        elif (menu == 3):           # System Menu
-            draw.rectangle([(220,130),(20,100)],fill = GRAY)
-        elif (menu == 4):           # Power options
-            draw.rectangle([(220,160),(20,130)],fill = GRAY)
-        else:
-            print("Something went wrong !")
-        draw.text((25,40),"Image Settings",fill = WHITE,font = Font4)
-        draw.text((25,70),"Shooting Mode",fill = WHITE,font = Font4)
-        draw.text((25,100),"System Menu",fill = WHITE,font = Font4)
-        draw.text((25,130),"Power Options",fill = WHITE,font = Font4)
-
-    elif( menu >= 11 and menu <= 19):       # Image Settings menu
-        draw.text((0,5),"Image Settings",fill = WHITE,font = Font3)
-        if ( menu == 11):
-            draw.rectangle([(220,70),(20,40)],fill = GRAY)
-        elif(menu == 12):
-            draw.rectangle([(220,100),(20,70)],fill = GRAY)
-        elif(menu == 13):
-            draw.rectangle([(220,130),(20,100)],fill = GRAY)
-            draw.text((2,102),"-",fill = GREEN,font = Font4)
-            draw.text((222,102),"+",fill = GREEN,font = Font4)
-        elif(menu == 14):
-            draw.rectangle([(220,160),(20,130)],fill = GRAY)
-            draw.text((2,132),"-",fill = GREEN,font = Font4)
-            draw.text((222,132),"+",fill = GREEN,font = Font4)
-        else:
-            print("ERROR !")
-
-        if(bnw):
-            draw.text((25,40),"B & W :            Enabled",fill = WHITE,font = Font4)
-        else:
-            draw.text((25,40),"B & W :            Disabled",fill = WHITE,font = Font4)
-        if(raw):
-            draw.text((25,70),"File :          JPG + RAW",fill = WHITE,font = Font4)
-        else:
-            draw.text((25,70),"File :               JPG only",fill = WHITE,font = Font4)
-        if(imageQuality == 0):
-            draw.text((25,100),"Size :      1600 x 1200",fill = WHITE,font = Font4)
-        elif(imageQuality == 1):
-            draw.text((25,100),"Size :     2048 x 1536",fill = WHITE,font = Font4)
-        elif(imageQuality == 2):
-            draw.text((25,100),"Size :     2464 x 1632",fill = WHITE,font = Font4)
-        elif(imageQuality == 3):
-            draw.text((25,100),"Size :    3008 x 2000",fill = WHITE,font = Font4)
-        elif(imageQuality == 4):
-            draw.text((25,100),"Size :    3264 x 2448",fill = WHITE,font = Font4)
-        elif(imageQuality == 5):
-            draw.text((25,100),"Size :    3888 x 2592",fill = WHITE,font = Font4)
-        elif(imageQuality == 6):
-            draw.text((25,100),"Size :    4000 x 2800",fill = WHITE,font = Font4)
-        else:
-            draw.text((25,100),"Size :    4656 x 3496",fill = WHITE,font = Font4)
-        draw.text((25,130),"Shutter Speed : ",fill = WHITE,font = Font4)
-        draw.text((155,130),exposureValue[exposure],fill = WHITE,font = Font4)
-
-    elif( menu >= 21 and menu <= 29):       # Shooting Mode menu
-        draw.text((0,5),"Shooting Mode",fill = WHITE,font = Font3)
-        if ( menu == 21):
-            draw.rectangle([(220,70),(20,40)],fill = GRAY)
-        elif(menu == 22):
-            draw.rectangle([(220,100),(20,70)],fill = GRAY)
-        elif(menu == 23):
-            draw.rectangle([(220,130),(20,100)],fill = GRAY)
-        elif(menu == 24):
-            draw.rectangle([(220,160),(20,130)],fill = GRAY)
-        else:
-            print("ERROR !")
-        if ( mode == 1):                   # Single Shot
-            draw.text((25,40),"Single shot",fill = GREEN,font = Font4)
-            draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
-            draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
-            draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
-        elif(mode == 2):                   # Exposure Bracketing
-            draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-            draw.text((25,70),"Exposure Bracketing",fill = GREEN,font = Font4)
-            draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
-            draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
-        elif(mode == 3):                   # Timelapse Stills
-            draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-            draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
-            draw.text((25,100),"Timelapse Stills",fill = GREEN,font = Font4)
-            draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
-        elif(mode == 4):                   # Timelapse Video
-            draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-            draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
-            draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
-            draw.text((25,130),"Timelapse Video",fill = GREEN,font = Font4)
-        else:
-            print("ERROR !")
-
-    elif( menu >= 221 and menu <= 229 ):    # Shooting mode : Timelapse stills submenu
-        draw.text((0,5),"Bracketing Settings",fill = YELLOW,font = Font4)
-        draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-        draw.text((25,70),"Exposure Bracketing",fill = GREEN,font = Font4)
-        draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
-        draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
-        if ( menu == 221):
-            draw.rectangle([(220,190),(20,160)],fill = GRAY)
-            draw.text((2,162),"-",fill = GREEN,font = Font4)
-            draw.text((222,162),"+",fill = GREEN,font = Font4)
-        elif(menu == 222):
-            draw.rectangle([(220,220),(20,190)],fill = GRAY)
-            draw.text((2,192),"-",fill = GREEN,font = Font4)
-            draw.text((222,192),"+",fill = GREEN,font = Font4)
-        else:
-            print("ERROR !")
-        draw.text((25,160),"Shutter Speed",fill = YELLOW,font = Font4)
-        draw.text((25,190),"No. of shots",fill = YELLOW,font = Font4)
-        draw.text((140,160),": "+str(exposureValue[exposure]),fill = YELLOW,font = Font4)
-        draw.text((140,190),": "+str(bktCount),fill = YELLOW,font = Font4)
-
-    elif( menu >= 231 and menu <= 239 ):    # Shooting mode : Timelapse stills submenu
-        draw.text((0,5),"Timelapse Stills Settings",fill = YELLOW,font = Font4)
-        draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-        draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
-        draw.text((25,100),"Timelapse Stills",fill = GREEN,font = Font4)
-        draw.text((25,130),"Timelapse Video",fill = WHITE,font = Font4)
-        if ( menu == 231):
-            draw.rectangle([(220,190),(20,160)],fill = GRAY)
-            draw.text((2,162),"-",fill = GREEN,font = Font4)
-            draw.text((222,162),"+",fill = GREEN,font = Font4)
-        elif(menu == 232):
-            draw.rectangle([(220,220),(20,190)],fill = GRAY)
-            draw.text((2,192),"-",fill = GREEN,font = Font4)
-            draw.text((222,192),"+",fill = GREEN,font = Font4)
-        else:
-            print("ERROR !")
-        draw.text((25,160),"Interval(sec)",fill = YELLOW,font = Font4)
-        draw.text((25,190),"No. of shots",fill = YELLOW,font = Font4)
-        draw.text((140,160),": "+str(interval),fill = YELLOW,font = Font4)
-        draw.text((140,190),": "+str(imageCount),fill = YELLOW,font = Font4)
-
-
-    elif( menu >= 241 and menu <= 249 ):    # Shooting mode : Timelapse video submenu
-        draw.text((0,5),"Timelapse Video Settings",fill = YELLOW,font = Font4)
-        draw.text((25,40),"Single shot",fill = WHITE,font = Font4)
-        draw.text((25,70),"Exposure Bracketing",fill = WHITE,font = Font4)
-        draw.text((25,100),"Timelapse Stills",fill = WHITE,font = Font4)
-        draw.text((25,130),"Timelapse Video",fill = GREEN,font = Font4)
-        if ( menu == 241):
-            draw.rectangle([(220,190),(20,160)],fill = GRAY)
-            draw.text((2,162),"-",fill = GREEN,font = Font4)
-            draw.text((222,162),"+",fill = GREEN,font = Font4)
-        elif(menu == 242):
-            draw.rectangle([(220,220),(20,190)],fill = GRAY)
-            draw.text((2,192),"-",fill = GREEN,font = Font4)
-            draw.text((222,192),"+",fill = GREEN,font = Font4)
-        else:
-            print("ERROR !")
-        draw.text((25,160),"Interval(sec)",fill = YELLOW,font = Font4)
-        draw.text((25,190),"No. of shots ",fill = YELLOW,font = Font4)
-        draw.text((140,160),": "+str(interval),fill = YELLOW,font = Font4)
-        draw.text((140,190),": "+str(imageCount),fill = YELLOW,font = Font4)
-
-    elif( menu >= 31 and menu <= 39 ):      # System Settings
-        draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
-        if(menu == 31):
-            draw.rectangle([(220,70),(20,40)],fill = GRAY)
-            draw.text((2,42),"-",fill = GREEN,font = Font4)
-            draw.text((222,42),"+",fill = GREEN,font = Font4)
-            draw_bar(image,brightness)
-        elif(menu == 32):
-            draw.rectangle([(220,100),(20,70)],fill = GRAY)
-        elif(menu == 33):
-            draw.rectangle([(220,130),(20,100)],fill = GRAY)
-        draw.text((25,40),"Display Brightness",fill = WHITE,font = Font4)
-        draw.text((25,70),"Storage Space",fill = WHITE,font = Font4)
-        draw.text((25,100),"User Settings",fill = WHITE,font = Font4)
-
-    elif( menu >= 321 and menu <= 329 ):      # Storage Submenu
-        draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
-        if(menu == 321):
-            draw.rectangle([(220,160),(20,130)],fill = GRAY)
-            memory=shutil.disk_usage(storagePath)
-            usage=int((memory[1]/memory[0])*100)
-            used=(memory[1]/1024)
-            total=(memory[0]/1024)/1024
-
-            if(used > 0 and used < 1024):
-                value = str(round(used,2)) + " KB / " + str(round((total/1024),2)) + " GB"
-            elif(used >= 1024 and used < 1048576): # and used < 1073741824):
-                value = str(round((used/1024),2)) + " MB / " + str(round((total/1024),2)) + " GB"
-            else:
-                value = str(round(((used/1024)/1024),2)) + " GB / " + str(round((total/1024),2)) + " GB"
-
-            if(usage < 50):
-                COLOR = GREEN
-            elif(usage >= 50 and usage <=75):
-                COLOR = YELLOW
-            else:
-                COLOR = RED
-            draw.text((25,190),value,fill = COLOR,font = Font4)
-            draw_bar(image,usage)
-        elif(menu == 322):
-            draw.rectangle([(220,190),(20,160)],fill = GRAY)
-        draw.text((25,40),"Display Brightness",fill = WHITE,font = Font4)
-        draw.text((25,70),"Storage Space",fill = WHITE,font = Font4)
-        draw.text((25,100),"User Settings",fill = WHITE,font = Font4)
-        draw.text((25,130),"Memory Used",fill = YELLOW,font = Font4)
-        draw.text((25,160),"Format data",fill = YELLOW,font = Font4)
-
-    elif( menu == 3222 ):                     # Data Format Confirmation
-        draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
-        draw.rectangle([(220,190),(20,160)],fill = GRAY)
-        draw.text((25,40),"Display Brightness",fill = WHITE,font = Font4)
-        draw.text((25,70),"Storage Space",fill = WHITE,font = Font4)
-        draw.text((25,100),"User Settings",fill = WHITE,font = Font4)
-        draw.text((25,130),"Memory Used ",fill = YELLOW,font = Font4)
-        draw.text((25,160),"Format data ???",fill = RED,font = Font4)
-
-    elif( menu >= 331 and menu <= 339 ):      # User Settings Submenu
-        draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
-        if(menu == 331):
-            draw.rectangle([(220,160),(20,130)],fill = GRAY)
-        elif(menu == 332):
-            draw.rectangle([(220,190),(20,160)],fill = GRAY)
-        draw.text((25,40),"Display Brightness",fill = WHITE,font = Font4)
-        draw.text((25,70),"Storage Space",fill = WHITE,font = Font4)
-        draw.text((25,100),"User Settings",fill = WHITE,font = Font4)
-        draw.text((25,130),"Save current settings",fill = YELLOW,font = Font4)
-        draw.text((25,160),"Reset settings",fill = YELLOW,font = Font4)
-
-    elif( menu == 3311 ):                     # Save User Settings Confirmation
-        draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
-        draw.rectangle([(220,160),(20,130)],fill = GRAY)
-        draw.text((25,40),"Display Brightness",fill = WHITE,font = Font4)
-        draw.text((25,70),"Storage Space",fill = WHITE,font = Font4)
-        draw.text((25,100),"User Settings",fill = WHITE,font = Font4)
-        draw.text((25,130),"Save current settings ?",fill = RED,font = Font4)
-        draw.text((25,160),"Reset settings",fill = YELLOW,font = Font4)
-
-    elif( menu == 3321 ):                     # Reset User Settings Confirmation
-        draw.text((0,5),"System Menu",fill = WHITE,font = Font3)
-        draw.rectangle([(220,190),(20,160)],fill = GRAY)
-        draw.text((25,40),"Display Brightness",fill = WHITE,font = Font4)
-        draw.text((25,70),"Storage Space",fill = WHITE,font = Font4)
-        draw.text((25,100),"User Settings",fill = WHITE,font = Font4)
-        draw.text((25,130),"Save current settings",fill = YELLOW,font = Font4)
-        draw.text((25,160),"Reset settings ???",fill = RED,font = Font4)
+        items=["Image Settings","Shooting Mode","System Menu","Power Options"]
+        menu_display("Menu",items,menu)
 
     elif( menu >= 41 and menu <= 49 ):        # Power options
-        draw.text((0,0),"Power options", fill = WHITE,font = Font3)
-        if(menu == 41 ):
-            draw.rectangle([(220,70),(20,40)],fill = GRAY)
-        elif(menu == 42):
-            draw.rectangle([(220,100),(20,70)],fill = GRAY)
-        draw.text((25,40),"Reboot", fill = WHITE,font = Font4)
-        draw.text((25,70),"Poweroff", fill = WHITE,font = Font4)
+        items=["Reboot","Poweroff"]
+        menu_display("Power options",items,menu)
 
-    st7789.display(image)
