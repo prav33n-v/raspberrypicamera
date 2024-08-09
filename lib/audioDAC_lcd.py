@@ -1,30 +1,34 @@
 import RPi.GPIO as GPIO
 import shutil
+import time
 from ST7789 import ST7789
 from PIL import Image, ImageDraw, ImageFont
 
 # Variables for display/screen
+brightness = 50
 SPI_SPEED_MHZ = 80
 exposureValue=["Auto","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400","1/320","1/250","1/200","1/160","1/125","1/100","1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/13","1/10","1/8","1/6","1/5","1/4","1/3","1/2.5","1/2","1/1.6","1/1.3",'1"','1.3"','1.6"','2"','2.5"','3"','4"','5"','6"','8"','10"','13"','15"','20"','25"','30"','60"','90"','120"','150"','180"']
 
 # Define colors
 RED=(255,0,0)
 GREEN=(0,255,0)
-BLUE=(0,0,255)
 BLACK=(0,0,0)
 GRAY=(120,120,120)
 WHITE=(255,255,255)
 YELLOW=(255,255,0)
+MENU_SELECT=(150,200,25)
+MENU_TEXT=(170,160,150)
+MENU_TITLE=(150,150,0)
 
 # Path for fonts
 # Fonts used are taken from the waveshare LCD interface example code
 # URL : https://www.waveshare.com/w/upload/a/a8/LCD_Module_RPI_code.7z
-Font1 = ImageFont.truetype("./font/Font01.ttf",50)
-Font2 = ImageFont.truetype("./font/Font02.ttf",40)
-Font3 = ImageFont.truetype("./font/Font02.ttf",30)
-Font4 = ImageFont.truetype("./font/Font02.ttf",24)
-Font5 = ImageFont.truetype("./font/Font02.ttf",19)
-Font6 = ImageFont.truetype("./font/Font00.ttf",16)
+boot_screen = ImageFont.truetype("./font/Font01.ttf",50)
+menu_icon_large = ImageFont.truetype("./font/Font02.ttf",30)
+menu_icon = ImageFont.truetype("./font/Font02.ttf",24)
+home_info = ImageFont.truetype("./font/Font02.ttf",19)
+menu_title = ImageFont.truetype("./font/Font02.ttf",30)
+menu_line = ImageFont.truetype("./font/Font02.ttf",24)
 
 st7789 = ST7789(
     rotation=90,  # Needed to display the right way up on Pirate Audio
@@ -45,23 +49,16 @@ def show_image(image):
     new_image.paste(image,(0,0))
     st7789.display(new_image)
 
-def draw_bar(image,value):
+def draw_bar(image,value,background_color=GRAY,bar_fill_color=WHITE):
     draw = ImageDraw.Draw(image)
     # Draw a handy on-screen bar to show us the current brightness
-    bar_width = int((210 / 100.0) * value)
-    draw.rectangle([(15,210),(15,215)],fill = BLACK)
-    draw.rectangle((15, 210,5+bar_width, 215), WHITE)
+    bar_width = int((225 / 100.0) * value)
+    draw.rectangle((10,216,230,216), background_color)
+    draw.rectangle((10,216,5+bar_width,216), bar_fill_color)
     # return the resulting image
     return image
 
-# LCD : Write text on screen
-def write_text(image,xpos,ypos,string,text_color,bg_color,str_font):
-    draw = ImageDraw.Draw(image)
-    draw.rectangle([(240,ypos+30),(xpos,ypos)],fill = bg_color)
-    draw.text((xpos, ypos),string, fill = text_color,font = str_font)
-    st7789.display(image)
-
-def progress_bar(image_file,value,x,imagecount,mode):
+def progress_bar(image_file,value,x,imagecount,mode,background_color=GRAY,bar_fill_color=WHITE):
     basewidth = 240
     image = Image.open(image_file)
     wpercent = (basewidth/float(image.size[0]))
@@ -71,111 +68,180 @@ def progress_bar(image_file,value,x,imagecount,mode):
     new_image.paste(image,(0,30))
     draw = ImageDraw.Draw(new_image)
     # Draw a handy on-screen bar to show us the current brightness
-    bar_width = int((210 / 100.0) * value)
+    bar_width = int((225 / 100.0) * value)
     if( mode == 1 ):                # mode 1 - stills
-        draw.text((210,5),"PIC", fill = RED,font = Font5)
+        draw.text((60,5),"PIC", fill = MENU_TEXT,font = home_info)
     elif( mode == 3 ):              # mode 3 - timelapse stills
-        draw.text((210,5),"TLS ", fill = RED,font = Font5)
+        draw.text((60,5),"TLP", fill = MENU_TEXT,font = home_info)
     elif( mode == 4 ):              # mode 4 - timelapse video
-        draw.text((210,5),"TLV ", fill = RED,font = Font5)
-    draw.text((80,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = Font5)
-    draw.rectangle([(15,210),(15,215)],fill = BLACK)
-    draw.rectangle((15, 210,15+bar_width, 215), GRAY)
+        draw.text((60,5),"TLV", fill = MENU_TEXT,font = home_info)
+    draw.text((80,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = home_info)
+    draw.rectangle((10,216,230,216), background_color)
+    draw.rectangle((10, 216,5+bar_width, 216), bar_fill_color)
     st7789.display(new_image)
 
 #############################################################################
 # Functions to print specific menu options for camera
 #############################################################################
 
-def init_disp():
+def boot_disp(message):
     image=Image.new("RGB",(240,240),color='black')
     draw = ImageDraw.Draw(image)
-    draw.text((45,70),"PiCam", fill = GREEN,font = Font1)
-    draw.text((75,130),"INFRA", fill = YELLOW,font = Font4)
-    draw.text((130,130),"RED", fill = RED,font = Font4)
+    draw.text((45,90),message, fill = GREEN,font = boot_screen)
     st7789.display(image)
 
-def reboot_disp():
-    image=Image.new("RGB",(240,240),color='black')
-    draw = ImageDraw.Draw(image)
-    draw.text((45,100),"Reboot", fill = YELLOW,font = Font1)
-    st7789.display(image)
-
-def poweroff_disp():
-    image=Image.new("RGB",(240,240),color='black')
-    draw = ImageDraw.Draw(image)
-    draw.text((15,100),"Poweroff", fill = RED,font = Font1)
-    st7789.display(image)
-
-#
-
-def menu_display(header,menu_item,menu):
-    item_number = menu % 10
+def menu_display(header,menu_item,display_config,bar_value=0):
+    item_number = display_config["menu"] % 10
     image=Image.new("RGB",(240,240),color='black')
     draw = ImageDraw.Draw(image)
 ################# Interface Buttons #########################
-    draw.text((5,215),"↓", fill = RED,font = Font3)
-    draw.text((85,215),"<", fill = RED,font = Font4)
-    draw.text((145,215),">",fill = RED,font = Font4)
-    draw.text((212,215),"↑", fill = RED,font = Font3)
+    draw.text((5,215),"↓", fill = RED,font = menu_icon_large)
+    if(display_config["left_right"]):
+        draw.text((80,215),"<", fill = RED,font = menu_icon)
+        draw.text((145,215),">",fill = RED,font = menu_icon)
+    draw.text((212,215),"↑", fill = RED,font = menu_icon_large)
 #############################################################
-    draw.text((0,5),header,fill = WHITE,font = Font3)
+    draw.text((0,5),header,fill = MENU_TITLE,font = menu_title)
     count = 0
     for item in menu_item:
         if(item_number == (count+1)):
-            draw.rectangle([(220,(37+(25*(count+1)))),(20,(37+(25*count)))],fill = GRAY)
-            draw.text((25,(35+(25*count))),item,fill = GREEN,font = Font4)
+            draw.rectangle([(230,(37+(25*(count+1)))),(10,(37+(25*count)))],fill = MENU_SELECT)
+            draw.text((15,(35+(25*count))),item,fill = BLACK,font = menu_line)
         else:
-            draw.text((25,(35+(25*count))),item,fill = WHITE,font = Font4)
+            draw.text((15,(35+(25*count))),item,fill = MENU_TEXT,font = menu_line)
         count += 1
-    
+    if(display_config["menu"] == 31):
+        st7789.display(draw_bar(image,display_config["brightness"]))
+    elif(display_config["menu"] == 32):
+        if(bar_value < 50):
+            COLOR = GREEN
+        elif(bar_value >= 50 and bar_value <=75):
+            COLOR = YELLOW
+        else:
+            COLOR = RED
+        st7789.display(draw_bar(image,bar_value,bar_fill_color=COLOR))
     st7789.display(image)
 
-#def camera_home(raw,bnw,mode,img,exposure,exp):
+def camera_home(display_config,shoot_config,camera_config):
 #    img= img.resize((240,180), resample=Image.BICUBIC)
-def camera_home():
-    raw=True
-    bnw=True
-    mode=1
-    exposure = 0
-    exp=False
     image=Image.new("RGB",(240,240),color='black')
 #    image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
-    if(exp):
-        draw.text((100,5),exposureValue[exposure],fill = GREEN, font = Font5)
+#    if(exp):
+#        draw.text((130,5),exposureValue[exposure],fill = MENU_TEXT, font = home_info)
+#    else:
+#        draw.text((130,5),exposureValue[exposure],fill = MENU_TITLE, font = home_info)
+    if( shoot_config["shoot_mode"] == 1 ):                # mode 1 - stills
+        draw.text((55,5),"PIC", fill = MENU_TEXT,font = home_info)
+    elif( shoot_config["shoot_mode"] == 2 ):              # mode 2 - bracketing
+        draw.text((55,5),"BKT", fill = MENU_TEXT,font = home_info)
+    elif( shoot_config["shoot_mode"] == 3 ):              # mode 3 - timelapse stills
+        draw.text((55,5),"TLP", fill = MENU_TEXT,font = home_info)
+    elif( shoot_config["shoot_mode"] == 4 ):              # mode 4 - timelapse video
+        draw.text((55,5),"TLV", fill = MENU_TEXT,font = home_info)
+    if(camera_config["bnw"]):
+        draw.text((5,5),"B & W", fill = MENU_TEXT,font = home_info)
     else:
-        draw.text((100,5),exposureValue[exposure],fill = RED, font = Font5)
-    if( mode == 1 ):                # mode 1 - stills
-        draw.text((210,5),"PIC", fill = RED,font = Font5)
-    elif( mode == 2 ):              # mode 2 - bracketing
-        draw.text((210,5),"BKT", fill = RED,font = Font5)
-    elif( mode == 3 ):              # mode 2 - timelapse stills
-        draw.text((210,5),"TLS", fill = RED,font = Font5)
-    elif( mode == 4 ):              # mode 2 - timelapse video
-        draw.text((210,5),"TLV", fill = RED,font = Font5)
-    if(bnw):
-        draw.text((5,5),"B & W", fill = WHITE,font = Font5)
+        draw.text((5,5),"COLOR", fill = MENU_TITLE,font = home_info)
+    if (camera_config["raw"]):
+        draw.text((90,5),"RAW", fill = MENU_TEXT,font = home_info)
     else:
-        draw.text((5,5),"COLOR", fill = RED,font = Font5)
-    if (raw):
-        draw.text((60,5),"RAW", fill = GREEN,font = Font5)
-
-    draw.text((5,215),"[•]", fill = RED,font = Font4)
-    draw.text((85,215),"<", fill = RED,font = Font4)
-    draw.text((145,215),">",fill = RED,font = Font4)
-    draw.text((211,202),"—", fill = RED,font = Font3)
-    draw.text((211,210),"—", fill = RED,font = Font3)
-    draw.text((211,218),"—", fill = RED,font = Font3)
+        draw.text((90,5),"JPG", fill = MENU_TEXT,font = home_info)
+    draw.text((3,215),"[•]", fill = RED,font = menu_icon)
+    if(display_config["left_right"]):
+        draw.text((80,215),"<", fill = RED,font = menu_icon)
+        draw.text((145,215),">",fill = RED,font = menu_icon)
+    draw.rectangle([(210,220),(232,221)],fill = RED)
+    draw.rectangle([(210,229),(232,230)],fill = RED)
+    draw.rectangle([(210,238),(232,239)],fill = RED)
     st7789.display(image)
 
 def menu_control(display_config,shoot_config,camera_config):
     menu = display_config.get("menu")
     if( menu >= 1 and menu <= 9):
         items=["Image Settings","Shooting Mode","System Menu","Power Options"]
-        menu_display("Menu",items,menu)
+        menu_display("Menu",items,display_config)
 
-    elif( menu >= 41 and menu <= 49 ):        # Power options
+    elif( menu >= 11 and menu <= 19 ):        # Image settings
+        items=["Shutter Speed","Gain","Contrast","Output","Format","Image Size"]
+        if(camera_config["bnw"]):
+            items[3] = items[3] + " → B & W"
+        else:
+            items[3] = items[3] + " → COLOR"
+        if(camera_config["raw"]):
+            items[4] = items[4] + " → JPG + RAW"
+        else:
+            items[4] = items[4] + " → JPG"
+        menu_display("Image Settings",items,display_config)
+
+    elif( menu >= 21 and menu <= 29 ):        # Shooting mode
+        items=["Single Shot","Bracketing","Timelapse Photo","Timelapse Video"]
+        menu_display("Shooting Mode",items,display_config)
+
+    elif( menu >= 221 and menu <= 229 ):      # Bracketing submenu
+        items=["Single Shot","Bracketing","* Shutter Speed","* Frames","Timelapse Photo","Timelapse Video"]
+        menu_display("Shooting Mode",items,display_config)
+
+    elif( menu >= 231 and menu <= 239 ):      # Timelapse photo submenu
+        items=["Single Shot","Bracketing","Timelapse Photo","* Shutter Speed","* Frames","* Interval","Timelapse Video"]
+        menu_display("Shooting Mode",items,display_config)
+
+    elif( menu >= 241 and menu <= 249 ):      # Timelapse video submenu
+        items=["Single Shot","Bracketing","Timelapse Photo","Timeplapse Video","* Shutter Speed","* Frames","* Interval"]
+        menu_display("Shooting Mode",items,display_config)
+
+    elif( menu >= 31 and menu <= 39 ):        # System Menu
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings"]
+        usage = 0
+        if(menu == 31):                             # Brightness Control
+            items[0] = items[0] + "—" + str(display_config["brightness"]) + "%"
+        elif(menu == 32):                           # Disk space usage info
+            memory=shutil.disk_usage(shoot_config["storage_path"])
+            usage=int((memory[1]/memory[0])*100)
+            used=(memory[1]/1024)
+            total=(memory[0]/1024)/1024
+            if(used > 0 and used < 1024):
+                value = str(round(used,2)) + "k /" + str(round((total/1024),2)) + "g"
+            elif(used >= 1024 and used < 1048576): # and used < 1073741824):
+                value = str(round((used/1024),2)) + "m /" + str(round((total/1024),2)) + "g"
+            else:
+                value = str(round(((used/1024)/1024),2)) + "g /" + str(round((total/1024),2)) + "g"
+            items[1] = items[1] + "—" + value
+        menu_display("System Menu",items,display_config,usage)
+
+    elif( menu == 333 ):                            # Wipe data
+        items=["Screen Brightness","Disk","Wipe Data — Sure ?","Save Settings","Reset Settings"]
+        menu_display("System Menu",items,display_config)
+
+    elif( menu == 3333 ):                           # Wipe data confirmation
+        items=["Screen Brightness","Disk","Wipe Data — Done!","Save Settings","Reset Settings"]
+        menu_display("System Menu",items,display_config)
+        time.sleep(1)
+        items[2] = "Wipe Data"
+        menu_display("System Menu",items,display_config)
+
+    elif( menu == 344 ):                            # Save settings
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings — Sure ?","Reset Settings"]
+        menu_display("System Menu",items,display_config)
+
+    elif( menu == 3444 ):                           # Save settings confirmation
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings — Done!","Reset Settings"]
+        menu_display("System Menu",items,display_config)
+        time.sleep(1)
+        items[3] = "Save Settings"
+        menu_display("System Menu",items,display_config)
+
+    elif( menu == 355 ):                            # Reset settings
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings — Sure?"]
+        menu_display("System Menu",items,display_config)
+
+    elif( menu == 3555 ):                           # Reset settings confirmation
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings — Done!"]
+        menu_display("System Menu",items,display_config)
+        time.sleep(1)
+        items[4] = "Reset Settings"
+        menu_display("System Menu",items,display_config)
+
+    elif( menu >= 41 and menu <= 49 ):        # Power Options
         items=["Reboot","Poweroff"]
-        menu_display("Power options",items,menu)
-
+        menu_display("Power Options",items,display_config)
