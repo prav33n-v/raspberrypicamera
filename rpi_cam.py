@@ -11,6 +11,7 @@ import RPi.GPIO as GPIO
 import lib.audioDAC_lcd as lcd
 import lib.operations as ops
 
+GPIO.setwarnings(False)
 # Setup RPI.GPIO with "BCM" numbering scheme
 GPIO.setmode(GPIO.BCM)
 # We must set the backlight pin up as an output first
@@ -33,29 +34,29 @@ shoot_config = {
     "bkt_raw": True,
     "bkt_bnw": False,
     "min_interval": 1,
-    "max_interval": 9,
-    "tlp_interval": 1,
-    "tlp_min_frame": 24,
-    "tlp_max_frame": 120,
+    "max_interval": 9999,
+    "tlp_interval": 5,
+    "tlp_min_frame": 10,
+    "tlp_max_frame": 999999,
     "tlp_frame_count": 30,
     "tlp_exposure": 0,
     "tlp_raw": True,
     "tlp_bnw": False,
-    "tlv_interval": 1,
+    "tlv_interval": 10,
     "tlv_min_frame": 30,
-    "tlv_max_frame": 120,
-    "tlv_frame_count": 60,
+    "tlv_max_frame": 999999,
+    "tlv_frame_count": 90,
     "tlv_exposure": 0,
     "tlv_raw": False,
     "tlv_bnw": False,
-    "exposure_common": True,
+    "exposure_common": False,
     "raw_common": False,
     "bnw_common": False,
     "storage_path": "/home/pi/Pictures"
 }
 
 display_config = {
-    "brightness": 40,
+    "brightness": 50,
     "menu": 0,
     "left": False,
     "right": False,
@@ -166,19 +167,20 @@ def touch_input(input):
             shoot_config["shoot_mode"] = display_config["menu"] % 10
         elif(display_config["menu"] >= 231 and display_config["menu"] <=239):   # Timelapse photo submenu
             display_config["menu"] = ops.down(display_config["menu"],234,235) 
+            if(display_config["menu"] == 234):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_frame_count"],shoot_config["tlp_min_frame"],shoot_config["tlp_max_frame"],5)
+            if(display_config["menu"] == 235):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0) 
         elif(display_config["menu"] >= 241 and display_config["menu"] <=249):   # Timelapse video submenu
             display_config["menu"] = ops.down(display_config["menu"],245,246) 
+            if(display_config["menu"] == 245):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_frame_count"],shoot_config["tlv_min_frame"],shoot_config["tlv_max_frame"],15)
+            if(display_config["menu"] == 246):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
         elif(display_config["menu"] >= 41 and display_config["menu"] <=49):     # System menu page
             display_config["menu"] = ops.down(display_config["menu"],41,45) 
             if(display_config["menu"] == 41):
-                if(display_config["brightness"] < 7):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(display_config["brightness"] > 98):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(display_config["brightness"],5,100,2)
         elif(display_config["menu"] == 4333 or display_config["menu"] == 433):  # After wiping data from system menu page
             display_config["menu"] = 44
         elif(display_config["menu"] == 4444 or display_config["menu"] == 444):  # After save settings from system menu page
@@ -197,14 +199,7 @@ def touch_input(input):
             if(display_config["brightness"] > 5):
                 display_config["brightness"] = ops.decrement(display_config["brightness"],5)
                 backlight.ChangeDutyCycle(display_config["brightness"])
-                if(display_config["brightness"] < 7):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(display_config["brightness"] > 98):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(display_config["brightness"],5,100,2)
         elif(display_config["menu"] == 14):                                     # Toggle bnw
             camera_config["bnw"] = not camera_config["bnw"]
         elif(display_config["menu"] == 15):                                     # Toggle raw
@@ -212,60 +207,23 @@ def touch_input(input):
         elif(display_config["menu"] == 223):                                    # Decrease bracket frame count
             if(shoot_config["bkt_frame_count"] > 3):
                 shoot_config["bkt_frame_count"] = ops.decrement(shoot_config["bkt_frame_count"],2)
-                if(shoot_config["bkt_frame_count"] < 4):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["bkt_frame_count"] > 8):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["bkt_frame_count"],3,9,1)  
         elif(display_config["menu"] == 234):                                    # Decrease Timelapse photo frame count
             if(shoot_config["tlp_frame_count"] > shoot_config["tlp_min_frame"]):
                 shoot_config["tlp_frame_count"] = ops.decrement(shoot_config["tlp_frame_count"],10)
-                if(shoot_config["tlp_frame_count"] < (shoot_config["tlp_min_frame"] + 5)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlp_frame_count"] > (shoot_config["tlp_max_frame"] - 5)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_frame_count"],shoot_config["tlp_min_frame"],shoot_config["tlp_max_frame"],5)
         elif(display_config["menu"] == 235):                                    # Decrease Timelapse photo interval count
             if(shoot_config["tlp_interval"] > shoot_config["min_interval"]):
                 shoot_config["tlp_interval"] = ops.decrement(shoot_config["tlp_interval"],1)
-                if(shoot_config["tlp_interval"] < (shoot_config["min_interval"] + 1)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlp_interval"] > (shoot_config["max_interval"] - 1)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
         elif(display_config["menu"] == 245):                                    # Decrease Timelapse video frame count
             if(shoot_config["tlv_frame_count"] > shoot_config["tlv_min_frame"]):
                 shoot_config["tlv_frame_count"] = ops.decrement(shoot_config["tlv_frame_count"],30)
-                if(shoot_config["tlv_frame_count"] < (shoot_config["tlv_min_frame"] + 15)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlv_max_frame"] > (shoot_config["tlv_max_frame"] - 15)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_frame_count"],shoot_config["tlv_min_frame"],shoot_config["tlv_max_frame"],15)
         elif(display_config["menu"] == 246):                                    # Decrease Timelapse video interval count
             if(shoot_config["tlv_interval"] > shoot_config["min_interval"]):
                 shoot_config["tlv_interval"] = ops.decrement(shoot_config["tlv_interval"],1)
-                if(shoot_config["tlv_interval"] < (shoot_config["min_interval"] + 1)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlv_interval"] > (shoot_config["max_interval"] - 1)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
-            else:
-                blink(3)
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
         lcd.menu_control(display_config,shoot_config,camera_config)
 
     elif(input == 4):                                                           # 'C' key on TouchPHAT being used as INCREMENT ( + )
@@ -274,14 +232,7 @@ def touch_input(input):
             if(display_config["brightness"] < 100):
                 display_config["brightness"] = ops.increment(display_config["brightness"],5)
                 backlight.ChangeDutyCycle(display_config["brightness"])
-                if(display_config["brightness"] < 7):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(display_config["brightness"] > 98):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(display_config["brightness"],5,100,2)
         elif(display_config["menu"] == 14):                                     # Toggle bnw
             camera_config["bnw"] = not camera_config["bnw"]
         elif(display_config["menu"] == 15):                                     # Toggle raw
@@ -289,59 +240,23 @@ def touch_input(input):
         elif(display_config["menu"] == 223):                                    # Increase bracket frame count
             if(shoot_config["bkt_frame_count"] < 9):
                 shoot_config["bkt_frame_count"] = ops.increment(shoot_config["bkt_frame_count"],2)
-                if(shoot_config["bkt_frame_count"] > 8):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
-                if(shoot_config["bkt_frame_count"] < 4):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["bkt_frame_count"],3,9,1) 
         elif(display_config["menu"] == 234):                                    # Increase Timelapse photo frame count
             if(shoot_config["tlp_frame_count"] < shoot_config["tlp_max_frame"]):
                 shoot_config["tlp_frame_count"] = ops.increment(shoot_config["tlp_frame_count"],10)
-                if(shoot_config["tlp_frame_count"] < (shoot_config["tlp_min_frame"] + 5)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlp_frame_count"] > (shoot_config["tlp_max_frame"] - 5)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
-            else:
-                blink(3)
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_frame_count"],shoot_config["tlp_min_frame"],shoot_config["tlp_max_frame"],5)
         elif(display_config["menu"] == 235):                                    # Increase Timelapse photo interval count
             if(shoot_config["tlp_interval"] < shoot_config["max_interval"]):
                 shoot_config["tlp_interval"] = ops.increment(shoot_config["tlp_interval"],1)
-                if(shoot_config["tlp_interval"] < (shoot_config["min_interval"] + 1)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlp_interval"] > (shoot_config["max_interval"] - 1)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
         elif(display_config["menu"] == 245):                                    # Increase Timelapse video frame count
             if(shoot_config["tlv_frame_count"] < shoot_config["tlv_max_frame"]):
-                if(shoot_config["tlv_frame_count"] < (shoot_config["tlv_min_frame"] + 15)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlv_max_frame"] > (shoot_config["tlv_max_frame"] - 15)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                shoot_config["tlv_frame_count"] = ops.increment(shoot_config["tlv_frame_count"],30)
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_frame_count"],shoot_config["tlv_min_frame"],shoot_config["tlv_max_frame"],15)
         elif(display_config["menu"] == 246):                                    # Increase Timelapse video interval count
             if(shoot_config["tlv_interval"] < shoot_config["max_interval"]):
                 shoot_config["tlv_interval"] = ops.increment(shoot_config["tlv_interval"],1)
-                if(shoot_config["tlv_interval"] < (shoot_config["min_interval"] + 1)):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(shoot_config["tlv_interval"] > (shoot_config["max_interval"] - 1)):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
         lcd.menu_control(display_config,shoot_config,camera_config)
 
     elif(input == 5):                                                           # 'D' key on TouchPHAT being used as UP
@@ -356,20 +271,21 @@ def touch_input(input):
             display_config["menu"] = ops.up(display_config["menu"],21,24) 
             shoot_config["shoot_mode"] = display_config["menu"] % 10
         elif(display_config["menu"] >= 231 and display_config["menu"] <=239):   # Timelapse photo submenu
-            display_config["menu"] = ops.up(display_config["menu"],234,235) 
+            display_config["menu"] = ops.up(display_config["menu"],234,235)
+            if(display_config["menu"] == 234):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_frame_count"],shoot_config["tlp_min_frame"],shoot_config["tlp_max_frame"],5)
+            if(display_config["menu"] == 235):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlp_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0) 
         elif(display_config["menu"] >= 241 and display_config["menu"] <=249):   # Timelapse video submenu
             display_config["menu"] = ops.up(display_config["menu"],245,246) 
+            if(display_config["menu"] == 245):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_frame_count"],shoot_config["tlv_min_frame"],shoot_config["tlv_max_frame"],15)
+            if(display_config["menu"] == 246):
+                display_config["left"],display_config["right"] = ops.check_left_right(shoot_config["tlv_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
         elif(display_config["menu"] >= 41 and display_config["menu"] <=49):     # System menu page
             display_config["menu"] = ops.up(display_config["menu"],41,45) 
             if(display_config["menu"] == 41):
-                if(display_config["brightness"] < 7):  
-                    display_config["left"] = False
-                else:
-                    display_config["left"] = True
-                if(display_config["brightness"] > 98):  
-                    display_config["right"] = False
-                else:
-                    display_config["right"] = True
+                display_config["left"],display_config["right"] = ops.check_left_right(display_config["brightness"],5,100,2)
         elif(display_config["menu"] == 4333 or display_config["menu"] == 433):  # Move up from wipe data option of system menu page
             display_config["menu"] = 42
         elif(display_config["menu"] == 4444 or display_config["menu"] == 444):  # Move up from save setting option of system menu page
@@ -403,11 +319,25 @@ def touch_input(input):
             shoot_config["shoot_mode"]=2
         elif(display_config["menu"] == 23):                                     # Select timelapse photo mode from shooting mode page
             display_config["menu"] = 234
-            display_config["left"] = display_config["right"] = True
+            if(shoot_config["tlp_frame_count"] > (shoot_config["tlp_max_frame"]-5)):  
+                display_config["right"] = False
+            else:
+                display_config["right"] = True
+            if(shoot_config["tlp_frame_count"] < (shoot_config["tlp_min_frame"]+5)):  
+                display_config["left"] = False
+            else:
+                display_config["left"] = True
             shoot_config["shoot_mode"]=3
         elif(display_config["menu"] == 24):                                     # Select timelapse photo mode from shooting mode page
             display_config["menu"] = 245
-            display_config["left"] = display_config["right"] = True
+            if(shoot_config["tlv_frame_count"] > 8):  
+                display_config["right"] = False
+            else:
+                display_config["right"] = True
+            if(shoot_config["tlv_frame_count"] < 4):  
+                display_config["left"] = False
+            else:
+                display_config["left"] = True
             shoot_config["shoot_mode"]=4
         elif(display_config["menu"] == 4):                                      # Select system menu from main menu page
             display_config["menu"] = 41

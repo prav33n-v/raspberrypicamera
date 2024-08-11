@@ -16,9 +16,9 @@ BLACK=(0,0,0)
 GRAY=(120,120,120)
 WHITE=(255,255,255)
 YELLOW=(255,255,0)
-MENU_SELECT=(150,200,25)
-MENU_TEXT=(170,160,150)
-MENU_TITLE=(150,150,0)
+MENU_SELECT=(200,200,200)
+MENU_TEXT=(10,200,200)
+MENU_TITLE=(128,255,10)
 
 # Path for fonts
 # Fonts used are taken from the waveshare LCD interface example code
@@ -108,7 +108,7 @@ def menu_display(header,menu_item,display_config,bar_value=0):
     count = 0
     for item in menu_item:
         if(item_number == (count+1)):
-            draw.rectangle([(230,(35+(25*(count+1)))),(10,(35+(25*count)))],fill = MENU_SELECT)
+            draw.rectangle([(230,(36+(25*(count+1)))),(10,(36+(25*count)))],fill = MENU_SELECT)
             draw.text((15,(33+(25*count))),item,fill = BLACK,font = menu_line)
         else:
             draw.text((15,(33+(25*count))),item,fill = MENU_TEXT,font = menu_line)
@@ -163,11 +163,19 @@ def camera_home(display_config,shoot_config,camera_config):
 def menu_control(display_config,shoot_config,camera_config):
     menu = display_config.get("menu")
     if( menu >= 1 and menu <= 9):
-        items=["Image Settings","Shooting Mode","Global Settings","System Menu","Power Options"]
+        items=["Camera Control","Shooting Mode","Global Settings","System Menu","Power Options"]
         menu_display("Menu",items,display_config)
 
     elif( menu >= 11 and menu <= 19 ):        # Image settings
         items=["Exposure","Gain","Contrast","Output","Format","Image Size"]
+        if(shoot_config["shoot_mode"] == 1):
+            menu_page_title = "Single Image Setup"
+        elif(shoot_config["shoot_mode"] == 2):
+            menu_page_title = "Bracketing Setup"
+        elif(shoot_config["shoot_mode"] == 3):
+            menu_page_title = "Interval Timer Setup"
+        elif(shoot_config["shoot_mode"] == 4):
+            menu_page_title = "Timelapse Movie Setup"
         if(camera_config["bnw"]):
             items[3] = items[3] + " → B & W"
         else:
@@ -176,26 +184,26 @@ def menu_control(display_config,shoot_config,camera_config):
             items[4] = items[4] + " → JPG + RAW"
         else:
             items[4] = items[4] + " → JPG"
-        menu_display("Image Settings",items,display_config)
+        menu_display(menu_page_title,items,display_config)
 
     elif( menu >= 21 and menu <= 29 ):        # Shooting mode
-        items=["Single Shot","Bracketing","Timelapse Photo","Timelapse Video"]
+        items=["Single Shot","Bracketing","Interval Timer Shoot","Timelapse Movie"]
         menu_display("Shooting Mode",items,display_config)
 
     elif( menu >= 222 and menu <= 229 ):      # Bracketing submenu
-        items=["Single Shot","Bracketing","* Frames","Timelapse Photo","Timelapse Video"]
+        items=["Single Shot","Bracketing","* Frames","Interval Timer Shoot","Timelapse Movie"]
         
         items[2]=items[2] + " → " + str(shoot_config["bkt_frame_count"])
         menu_display("Shooting Mode",items,display_config)
 
     elif( menu >= 233 and menu <= 239 ):      # Timelapse photo submenu
-        items=["Single Shot","Bracketing","Timelapse Photo","* Frames","* Interval","Timelapse Video"]
+        items=["Single Shot","Bracketing","Interval Timer Shoot","* Frames","* Interval","Timelapse Movie"]
         items[3]=items[3] + " → " + str(shoot_config["tlp_frame_count"])
         items[4]=items[4] + " → " + str(shoot_config["tlp_interval"])
         menu_display("Shooting Mode",items,display_config)
 
     elif( menu >= 244 and menu <= 249 ):      # Timelapse video submenu
-        items=["Single Shot","Bracketing","Timelapse Photo","Timeplapse Video","* Frames","* Interval"]
+        items=["Single Shot","Bracketing","Interval Timer Shoot","Timeplapse Movie","* Frames","* Interval"]
         items[4]=items[4] + " → " + str(shoot_config["tlv_frame_count"])
         items[5]=items[5] + " → " + str(shoot_config["tlv_interval"])
         menu_display("Shooting Mode",items,display_config)
