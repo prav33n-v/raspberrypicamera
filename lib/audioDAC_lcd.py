@@ -95,20 +95,23 @@ def menu_display(header,menu_item,display_config,bar_value=0):
     image=Image.new("RGB",(240,240),color='black')
     draw = ImageDraw.Draw(image)
 ################# Interface Buttons #########################
-    draw.text((5,215),"↓", fill = RED,font = menu_icon_large)
-    if(display_config["left_right"]):
+    if(display_config["left"]):
         draw.text((80,215),"<", fill = RED,font = menu_icon)
+    if(display_config["right"]):
         draw.text((145,215),">",fill = RED,font = menu_icon)
-    draw.text((212,215),"↑", fill = RED,font = menu_icon_large)
+    if(display_config["down"]):
+        draw.text((5,215),"↓", fill = RED,font = menu_icon_large)
+    if(display_config["up"]):
+        draw.text((212,215),"↑", fill = RED,font = menu_icon_large)
 #############################################################
     draw.text((0,5),header,fill = MENU_TITLE,font = menu_title)
     count = 0
     for item in menu_item:
         if(item_number == (count+1)):
-            draw.rectangle([(230,(37+(25*(count+1)))),(10,(37+(25*count)))],fill = MENU_SELECT)
-            draw.text((15,(35+(25*count))),item,fill = BLACK,font = menu_line)
+            draw.rectangle([(230,(35+(25*(count+1)))),(10,(35+(25*count)))],fill = MENU_SELECT)
+            draw.text((15,(33+(25*count))),item,fill = BLACK,font = menu_line)
         else:
-            draw.text((15,(35+(25*count))),item,fill = MENU_TEXT,font = menu_line)
+            draw.text((15,(33+(25*count))),item,fill = MENU_TEXT,font = menu_line)
         count += 1
     if(display_config["menu"] == 31):
         st7789.display(draw_bar(image,display_config["brightness"]))
@@ -148,8 +151,9 @@ def camera_home(display_config,shoot_config,camera_config):
     else:
         draw.text((90,5),"JPG", fill = MENU_TEXT,font = home_info)
     draw.text((3,215),"[•]", fill = RED,font = menu_icon)
-    if(display_config["left_right"]):
+    if(display_config["left"]):
         draw.text((80,215),"<", fill = RED,font = menu_icon)
+    if(display_config["right"]):
         draw.text((145,215),">",fill = RED,font = menu_icon)
     draw.rectangle([(210,220),(232,221)],fill = RED)
     draw.rectangle([(210,229),(232,230)],fill = RED)
@@ -159,11 +163,11 @@ def camera_home(display_config,shoot_config,camera_config):
 def menu_control(display_config,shoot_config,camera_config):
     menu = display_config.get("menu")
     if( menu >= 1 and menu <= 9):
-        items=["Image Settings","Shooting Mode","System Menu","Power Options"]
+        items=["Image Settings","Shooting Mode","Global Settings","System Menu","Power Options"]
         menu_display("Menu",items,display_config)
 
     elif( menu >= 11 and menu <= 19 ):        # Image settings
-        items=["Shutter Speed","Gain","Contrast","Output","Format","Image Size"]
+        items=["Exposure","Gain","Contrast","Output","Format","Image Size"]
         if(camera_config["bnw"]):
             items[3] = items[3] + " → B & W"
         else:
@@ -178,24 +182,30 @@ def menu_control(display_config,shoot_config,camera_config):
         items=["Single Shot","Bracketing","Timelapse Photo","Timelapse Video"]
         menu_display("Shooting Mode",items,display_config)
 
-    elif( menu >= 221 and menu <= 229 ):      # Bracketing submenu
-        items=["Single Shot","Bracketing","* Shutter Speed","* Frames","Timelapse Photo","Timelapse Video"]
+    elif( menu >= 222 and menu <= 229 ):      # Bracketing submenu
+        items=["Single Shot","Bracketing","* Frames","Timelapse Photo","Timelapse Video"]
+        
+        items[2]=items[2] + " → " + str(shoot_config["bkt_frame_count"])
         menu_display("Shooting Mode",items,display_config)
 
-    elif( menu >= 231 and menu <= 239 ):      # Timelapse photo submenu
-        items=["Single Shot","Bracketing","Timelapse Photo","* Shutter Speed","* Frames","* Interval","Timelapse Video"]
+    elif( menu >= 233 and menu <= 239 ):      # Timelapse photo submenu
+        items=["Single Shot","Bracketing","Timelapse Photo","* Frames","* Interval","Timelapse Video"]
+        items[3]=items[3] + " → " + str(shoot_config["tlp_frame_count"])
+        items[4]=items[4] + " → " + str(shoot_config["tlp_interval"])
         menu_display("Shooting Mode",items,display_config)
 
-    elif( menu >= 241 and menu <= 249 ):      # Timelapse video submenu
-        items=["Single Shot","Bracketing","Timelapse Photo","Timeplapse Video","* Shutter Speed","* Frames","* Interval"]
+    elif( menu >= 244 and menu <= 249 ):      # Timelapse video submenu
+        items=["Single Shot","Bracketing","Timelapse Photo","Timeplapse Video","* Frames","* Interval"]
+        items[4]=items[4] + " → " + str(shoot_config["tlv_frame_count"])
+        items[5]=items[5] + " → " + str(shoot_config["tlv_interval"])
         menu_display("Shooting Mode",items,display_config)
 
-    elif( menu >= 31 and menu <= 39 ):        # System Menu
+    elif( menu >= 41 and menu <= 49 ):        # System Menu
         items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings"]
         usage = 0
-        if(menu == 31):                             # Brightness Control
-            items[0] = items[0] + "—" + str(display_config["brightness"]) + "%"
-        elif(menu == 32):                           # Disk space usage info
+        if(menu == 41):                             # Brightness Control
+            items[0] = items[0] + " → " + str(display_config["brightness"])
+        elif(menu == 42):                           # Disk space usage info
             memory=shutil.disk_usage(shoot_config["storage_path"])
             usage=int((memory[1]/memory[0])*100)
             used=(memory[1]/1024)
@@ -206,42 +216,42 @@ def menu_control(display_config,shoot_config,camera_config):
                 value = str(round((used/1024),2)) + "m /" + str(round((total/1024),2)) + "g"
             else:
                 value = str(round(((used/1024)/1024),2)) + "g /" + str(round((total/1024),2)) + "g"
-            items[1] = items[1] + "—" + value
+            items[1] = items[1] + " → " + value
         menu_display("System Menu",items,display_config,usage)
 
-    elif( menu == 333 ):                            # Wipe data
-        items=["Screen Brightness","Disk","Wipe Data — Sure ?","Save Settings","Reset Settings"]
+    elif( menu == 433 ):                            # Wipe data
+        items=["Screen Brightness","Disk","Wipe Data → Sure ?","Save Settings","Reset Settings"]
         menu_display("System Menu",items,display_config)
 
-    elif( menu == 3333 ):                           # Wipe data confirmation
-        items=["Screen Brightness","Disk","Wipe Data — Done!","Save Settings","Reset Settings"]
+    elif( menu == 4333 ):                           # Wipe data confirmation
+        items=["Screen Brightness","Disk","Wipe Data → Done !","Save Settings","Reset Settings"]
         menu_display("System Menu",items,display_config)
         time.sleep(1)
         items[2] = "Wipe Data"
         menu_display("System Menu",items,display_config)
 
-    elif( menu == 344 ):                            # Save settings
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings — Sure ?","Reset Settings"]
+    elif( menu == 444 ):                            # Save settings
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings → Sure ?","Reset Settings"]
         menu_display("System Menu",items,display_config)
 
-    elif( menu == 3444 ):                           # Save settings confirmation
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings — Done!","Reset Settings"]
+    elif( menu == 4444 ):                           # Save settings confirmation
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings → Done !","Reset Settings"]
         menu_display("System Menu",items,display_config)
         time.sleep(1)
         items[3] = "Save Settings"
         menu_display("System Menu",items,display_config)
 
-    elif( menu == 355 ):                            # Reset settings
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings — Sure?"]
+    elif( menu == 455 ):                            # Reset settings
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings → Sure ?"]
         menu_display("System Menu",items,display_config)
 
-    elif( menu == 3555 ):                           # Reset settings confirmation
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings — Done!"]
+    elif( menu == 4555 ):                           # Reset settings confirmation
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings → Done !"]
         menu_display("System Menu",items,display_config)
         time.sleep(1)
         items[4] = "Reset Settings"
         menu_display("System Menu",items,display_config)
 
-    elif( menu >= 41 and menu <= 49 ):        # Power Options
+    elif( menu >= 51 and menu <= 59 ):        # Power Options
         items=["Reboot","Poweroff"]
         menu_display("Power Options",items,display_config)
