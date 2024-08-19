@@ -113,9 +113,9 @@ def menu_display(header,menu_item,display_config,bar_value=0):
         else:
             draw.text((15,(33+(25*count))),item,fill = MENU_TEXT,font = menu_line)
         count += 1
-    if(display_config["menu"] == 31):
+    if(display_config["menu"] == 41):
         st7789.display(draw_bar(image,display_config["brightness"]))
-    elif(display_config["menu"] == 32):
+    elif(display_config["menu"] == 42):
         if(bar_value < 50):
             COLOR = GREEN
         elif(bar_value >= 50 and bar_value <=75):
@@ -209,10 +209,11 @@ def menu_control(display_config,shoot_config,camera_config):
         menu_display("Shooting Mode",items,display_config)
 
     elif( menu >= 41 and menu <= 49 ):        # System Menu
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings"]
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Load Settings","Reset Settings"]
         usage = 0
         if(menu == 41):                             # Brightness Control
             items[0] = items[0] + " → " + str(display_config["brightness"])
+
         elif(menu == 42):                           # Disk space usage info
             memory=shutil.disk_usage(shoot_config["storage_path"])
             usage=int((memory[1]/memory[0])*100)
@@ -228,38 +229,81 @@ def menu_control(display_config,shoot_config,camera_config):
         menu_display("System Menu",items,display_config,usage)
 
     elif( menu == 433 ):                            # Wipe data
-        items=["Screen Brightness","Disk","Wipe Data → Sure ?","Save Settings","Reset Settings"]
+        items=["Screen Brightness","Disk","Wipe Data → Sure ?","Save Settings","Load Settings","Reset Settings"]
         menu_display("System Menu",items,display_config)
 
     elif( menu == 4333 ):                           # Wipe data confirmation
-        items=["Screen Brightness","Disk","Wipe Data → Done !","Save Settings","Reset Settings"]
+        items=["Screen Brightness","Disk","Wipe Data → Done !","Save Settings","Load Settings","Reset Settings"]
         menu_display("System Menu",items,display_config)
         time.sleep(1)
         items[2] = "Wipe Data"
         menu_display("System Menu",items,display_config)
 
     elif( menu == 444 ):                            # Save settings
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings → Sure ?","Reset Settings"]
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings → Sure ?","Load Settings","Reset Settings"]
         menu_display("System Menu",items,display_config)
 
     elif( menu == 4444 ):                           # Save settings confirmation
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings → Done !","Reset Settings"]
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings → Done !","Load Settings","Reset Settings"]
         menu_display("System Menu",items,display_config)
         time.sleep(1)
         items[3] = "Save Settings"
         menu_display("System Menu",items,display_config)
 
-    elif( menu == 455 ):                            # Reset settings
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings → Sure ?"]
+    elif( menu == 455 ):                            # Load settings
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Load Settings → Sure ?","Reset Settings"]
         menu_display("System Menu",items,display_config)
 
-    elif( menu == 4555 ):                           # Reset settings confirmation
-        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Reset Settings → Done !"]
+    elif( menu == 4555 ):                           # Load settings confirmation
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Load Settings → Done !","Reset Settings"]
         menu_display("System Menu",items,display_config)
         time.sleep(1)
-        items[4] = "Reset Settings"
+        items[4] = "Load Settings"
         menu_display("System Menu",items,display_config)
 
-    elif( menu >= 51 and menu <= 59 ):        # Power Options
+    elif( menu == 466 ):                            # Load settings
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Load Settings","Reset Settings → Sure ?"]
+        menu_display("System Menu",items,display_config)
+
+    elif( menu == 4666 ):                           # Load settings confirmation
+        items=["Screen Brightness","Disk","Wipe Data","Save Settings","Load Settings","Reset Settings → Done !"]
+        menu_display("System Menu",items,display_config)
+        time.sleep(1)
+        items[5] = "Reset Settings"
+        menu_display("System Menu",items,display_config)
+
+    elif( menu >= 51 and menu <= 59 ):              # Power Options
         items=["Reboot","Poweroff"]
         menu_display("Power Options",items,display_config)
+
+    elif( menu == 511 ):
+        items=["Reboot → Sure ?","Poweroff"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 5112 ):
+        items=["Reboot","→ Configs saved","Poweroff"]
+        menu_display("Power Options",items,display_config)
+    
+    elif( menu == 5113 ):
+        items=["Reboot","→ Configs saved","→ Camera stopped","Poweroff"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 5114 ):
+        items=["Reboot","→ Configs saved","→ Camera stopped","→ Rebooting now . . .","Poweroff"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 522 ):
+        items=["Reboot","Poweroff → Sure ?"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 5223 ):
+        items=["Reboot","Poweroff","→ Configs saved"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 5224 ):
+        items=["Reboot","Poweroff","→ Configs saved","→ Camera stopped"]
+        menu_display("Power Options",items,display_config)
+    elif( menu == 5225 ):
+        items=["Reboot","Poweroff","→ Configs saved","→ Camera stopped","→ Bye Bye !!!"]
+        menu_display("Power Options",items,display_config)
+
