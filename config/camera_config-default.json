@@ -1,1 +1,1 @@
-{"exposure": 0, "bnw": true, "raw": true}
+{"exposure": 0, "bnw": true, "raw": true, "sharpness": 1.0, "min_sharpness": 0.5, "max_sharpness": 16.0, "contrast": 1.0, "min_contrast": 0.5, "max_contrast": 32.0, "image_size": 5, "min_image_size": 0, "max_image_size": 7}
