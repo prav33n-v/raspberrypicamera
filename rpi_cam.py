@@ -2,7 +2,7 @@
 
 import os
 import shutil
-
+import time
 import signal
 import touchphat
 import RPi.GPIO as GPIO
@@ -24,11 +24,15 @@ exposure_time=[0,625,800,1000,1250,1562,2000,2500,3125,4000,5000,6250,8000,10000
 image_height=[1600,2048,2464,3008,3264,3888,4000,4656]
 image_width=[1200,1536,1632,2000,2448,2592,2800,3496]
 
-def blink(count):
-    for x in range (1,count+1,1):
-        for y in range (1,7,1):
-            touchphat.set_led(y, True)
-            touchphat.set_led(y, False)
+def blink():
+    for y in range (1,7,1):
+        touchphat.set_led(y, True)
+        time.sleep(0.05)
+        touchphat.set_led(y, False)
+    for y in range (6,0,-1):
+        touchphat.set_led(y, True)
+        time.sleep(0.05)
+        touchphat.set_led(y, False)
 
 #def menu_key_input(display_config,shoot_config,camera_config):
 #    global display_config,shoot_config,camera_config
@@ -76,7 +80,7 @@ def handle_touch(event):
 def init():
     backlight.start(display_config["brightness"])
     lcd.boot_disp("camera_logo.jpeg")
-    blink(10)
+    blink()
 
 def end_program():
     lcd.boot_disp("camera_down_logo.jpeg")
