@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import os
 import shutil
 import time
 from ST7789 import ST7789
@@ -7,7 +8,10 @@ from PIL import Image, ImageDraw, ImageFont
 # Variables for display/screen
 brightness = 50
 SPI_SPEED_MHZ = 80
-exposureValue=["Auto","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400","1/320","1/250","1/200","1/160","1/125","1/100","1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/13","1/10","1/8","1/6","1/5","1/4","1/3","1/2.5","1/2","1/1.6","1/1.3",'1"','1.3"','1.6"','2"','2.5"','3"','4"','5"','6"','8"','10"','13"','15"','20"','25"','30"','60"','90"','120"','150"','180"']
+exposure_time=["Auto","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400","1/320","1/250","1/200","1/160","1/125","1/100","1/80","1/60","1/50","1/40","1/30","1/25","1/20","1/15","1/13","1/10","1/8","1/6","1/5","1/4","1/3","1/2.5","1/2","1/1.6","1/1.3",'1"','1.3"','1.6"','2"','2.5"','3"','4"','5"','6"','8"','10"','13"','15"','20"','25"','30"','60"']
+
+image_h=[1600,2048,2464,3008,3264,3888,4000,4656]
+image_w=[1200,1536,1632,2000,2448,2592,2800,3496]
 
 # Define colors
 RED=(255,0,0)
@@ -84,10 +88,12 @@ def progress_bar(image_file,value,x,imagecount,mode,background_color=GRAY,bar_fi
 # Functions to print specific menu options for camera
 #############################################################################
 
-def boot_disp(message):
-    image=Image.new("RGB",(240,240),color='black')
+def boot_disp(file_name):
+    dir= "logo"
+    camera_logo_file= os.path.join(os.getcwd(),dir,file_name)
+    image=Image.open(camera_logo_file)
+    image=image.resize((240,240), resample=Image.BICUBIC)
     draw = ImageDraw.Draw(image)
-    draw.text((45,90),message, fill = GREEN,font = boot_screen)
     st7789.display(image)
 
 def menu_display(header,menu_item,display_config,bar_value=0):
@@ -130,10 +136,10 @@ def camera_home(display_config,shoot_config,camera_config):
     image=Image.new("RGB",(240,240),color='black')
 #    image.paste(img,(0,30))
     draw = ImageDraw.Draw(image)
-#    if(exp):
-#        draw.text((130,5),exposureValue[exposure],fill = MENU_TEXT, font = home_info)
-#    else:
-#        draw.text((130,5),exposureValue[exposure],fill = MENU_TITLE, font = home_info)
+    if(camera_config["exposure"] == 0):
+        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TEXT, font = home_info)
+    else:
+        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TITLE, font = home_info)
     if( shoot_config["shoot_mode"] == 1 ):                # mode 1 - stills
         draw.text((55,5),"PIC", fill = MENU_TEXT,font = home_info)
     elif( shoot_config["shoot_mode"] == 2 ):              # mode 2 - bracketing
@@ -167,7 +173,7 @@ def menu_control(display_config,shoot_config,camera_config):
         menu_display("Menu",items,display_config)
 
     elif( menu >= 11 and menu <= 19 ):        # Image settings
-        items=["Exposure","Gain","Contrast","Output","Format","Image Size"]
+        items=["Exposure","Contrast","Sharpness","Output","Format","Size"]
         if(shoot_config["shoot_mode"] == 1):
             menu_page_title = "Single Image Setup"
         elif(shoot_config["shoot_mode"] == 2):
@@ -176,6 +182,9 @@ def menu_control(display_config,shoot_config,camera_config):
             menu_page_title = "Interval Timer Setup"
         elif(shoot_config["shoot_mode"] == 4):
             menu_page_title = "Timelapse Movie Setup"
+        items[0] = items[0] + " → " + exposure_time[camera_config["exposure"]]
+        items[1] = items[1] + " → " + str(camera_config["contrast"])
+        items[2] = items[2] + " → " + str(camera_config["sharpness"])
         if(camera_config["bnw"]):
             items[3] = items[3] + " → B & W"
         else:
@@ -184,6 +193,7 @@ def menu_control(display_config,shoot_config,camera_config):
             items[4] = items[4] + " → JPG + RAW"
         else:
             items[4] = items[4] + " → JPG"
+        items[5] = items[5] + " → " + str(image_h[camera_config["image_size"]]) +" X " + str(image_w[camera_config["image_size"]])
         menu_display(menu_page_title,items,display_config)
 
     elif( menu >= 21 and menu <= 29 ):        # Shooting mode
