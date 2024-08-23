@@ -131,10 +131,10 @@ def menu_display(header,menu_item,display_config,bar_value=0):
         st7789.display(draw_bar(image,bar_value,bar_fill_color=COLOR))
     st7789.display(image)
 
-def camera_home(display_config,shoot_config,camera_config):
-#    img= img.resize((240,180), resample=Image.BICUBIC)
+def camera_home(display_config,shoot_config,camera_config,preview_image):
+    preview_image= preview_image.resize((240,180), resample=Image.BICUBIC)
     image=Image.new("RGB",(240,240),color='black')
-#    image.paste(img,(0,30))
+    image.paste(preview_image,(0,30))
     draw = ImageDraw.Draw(image)
     if(camera_config["exposure"] == 0):
         draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TEXT, font = home_info)
