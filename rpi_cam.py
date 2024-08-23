@@ -7,7 +7,7 @@ import signal
 import touchphat
 import RPi.GPIO as GPIO
 
-#import lib.camera as camera
+import lib.camera as camera
 import lib.audioDAC_lcd as lcd
 import lib.operations as operation
 
@@ -34,9 +34,19 @@ def blink():
         time.sleep(0.05)
         touchphat.set_led(y, False)
 
-#def menu_key_input(display_config,shoot_config,camera_config):
-#    global display_config,shoot_config,camera_config
-#    print("Menu Key function to br developed")
+def init(display_config,shoot_config,camera_config):
+    backlight.start(display_config["brightness"])
+    lcd.boot_disp("camera_logo.jpeg")
+    camera.initialize_camera(camera_config)
+    blink()
+
+def preview(display_config,shoot_config,camera_config):
+    lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
+
+def end_program():
+    lcd.boot_disp("camera_down_logo.jpeg")
+    camera.stop_camera()
+    GPIO.cleanup()       # clean up GPIO on CTRL+C exit
 
 def touch_input(input):
     global display_config,shoot_config,camera_config
@@ -77,14 +87,6 @@ def touch_input(input):
 def handle_touch(event):
     touch_input(event.pad)
 
-def init():
-    backlight.start(display_config["brightness"])
-    lcd.boot_disp("camera_logo.jpeg")
-    blink()
-
-def end_program():
-    lcd.boot_disp("camera_down_logo.jpeg")
-    GPIO.cleanup()       # clean up GPIO on CTRL+C exit
 ###############################################################################################################
 # main()
 ###############################################################################################################
@@ -92,15 +94,15 @@ def end_program():
 def main():
     global display_config,shoot_config,camera_config
     display_config,shoot_config,camera_config = operation.load_settings("auto_saved")
-#    operation.save_settings(display_config,shoot_config,camera_config,"auto_saved")
+    init(display_config,shoot_config,camera_config)
     
-    try:
-        init()
-        lcd.camera_home(display_config,shoot_config,camera_config)
-        signal.pause()  
-    except KeyboardInterrupt:
-        print("Keyboard interrupt detected")
-        end_program()
+    while(True):
+        try:
+            preview(display_config,shoot_config,camera_config)
+            signal.pause()  
+        except KeyboardInterrupt:
+            print("Keyboard interrupt detected")
+            end_program()
 
 if __name__ == '__main__':
     main()
