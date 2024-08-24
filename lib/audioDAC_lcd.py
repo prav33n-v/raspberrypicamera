@@ -13,6 +13,9 @@ exposure_time=["Auto","1/1600","1/1250","1/1000","1/800","1/640","1/500","1/400"
 image_h=[1600,2048,2464,3008,3264,3888,4000,4656]
 image_w=[1200,1536,1632,2000,2448,2592,2800,3496]
 
+noise_reduction_mode = ("Off","Fast","Quality")
+white_balance = ("Auto","Tungsten","Fluorescent","Indoor","Daylight","Cloudy")
+
 # Define colors
 RED=(255,0,0)
 GREEN=(0,255,0)
@@ -188,55 +191,66 @@ def camera_home(display_config,shoot_config,camera_config,preview_image):
 def menu_control(display_config,shoot_config,camera_config):
     menu = display_config.get("menu")
     if( menu >= 1 and menu <= 9):
-        items=["Camera Control","Shooting Mode","Global Settings","System Menu","Power Options"]
+        items=["Camera Control","Shooting Mode","Image Settings","System Menu","Power Options"]
         menu_display("Menu",items,display_config)
 
-    elif( menu >= 11 and menu <= 19 ):        # Image settings
-        items=["Exposure","Contrast","Sharpness","Output","Format","Size"]
+    elif( menu >= 11 and menu <= 19 ):        # Camera control settings
+        items=["Exposure","Gain","Contrast","Sharpness","Noise Reduction","AWB"]
         if(shoot_config["shoot_mode"] == 1):
-            menu_page_title = "Single Image Setup"
+            menu_page_title = "Photo Mode Setup"
         elif(shoot_config["shoot_mode"] == 2):
-            menu_page_title = "Bracketing Setup"
+            menu_page_title = "Bracketing Mode Setup"
         elif(shoot_config["shoot_mode"] == 3):
             menu_page_title = "Interval Timer Setup"
         elif(shoot_config["shoot_mode"] == 4):
             menu_page_title = "Timelapse Movie Setup"
         items[0] = items[0] + " → " + exposure_time[camera_config["exposure"]]
-        items[1] = items[1] + " → " + str(camera_config["contrast"])
-        items[2] = items[2] + " → " + str(camera_config["sharpness"])
-        if(camera_config["bnw"]):
-            items[3] = items[3] + " → B & W"
-        else:
-            items[3] = items[3] + " → COLOR"
-        if(camera_config["raw"]):
-            items[4] = items[4] + " → JPG + RAW"
-        else:
-            items[4] = items[4] + " → JPG"
-        items[5] = items[5] + " → " + str(image_h[camera_config["image_size"]]) +" X " + str(image_w[camera_config["image_size"]])
+        items[1] = items[1] + " → " + str(camera_config["analogue_gain"])
+        items[2] = items[2] + " → " + str(camera_config["contrast"])
+        items[3] = items[3] + " → " + str(camera_config["sharpness"])
+        items[4] = items[4] + " → " + noise_reduction_mode[camera_config["noise_reduction"]]
+        items[5] = items[5] + " → " + white_balance[camera_config["white_balance"]]
         menu_display(menu_page_title,items,display_config)
 
     elif( menu >= 21 and menu <= 29 ):        # Shooting mode
-        items=["Single Shot","Bracketing","Interval Timer Shoot","Timelapse Movie"]
+        items=["Photo","Bracketing","Interval Timer Shoot","Timelapse Movie"]
         menu_display("Shooting Mode",items,display_config)
 
     elif( menu >= 222 and menu <= 229 ):      # Bracketing submenu
-        items=["Single Shot","Bracketing","* Frames","Interval Timer Shoot","Timelapse Movie"]
+        items=["Photo","Bracketing","* Frames","Interval Timer Shoot","Timelapse Movie"]
         
         items[2]=items[2] + " → " + str(shoot_config["bkt_frame_count"])
         menu_display("Shooting Mode",items,display_config)
 
     elif( menu >= 233 and menu <= 239 ):      # Timelapse photo submenu
-        items=["Single Shot","Bracketing","Interval Timer Shoot","* Frames","* Interval","Timelapse Movie"]
+        items=["Photo","Bracketing","Interval Timer Shoot","* Frames","* Interval","Timelapse Movie"]
         items[3]=items[3] + " → " + str(shoot_config["tlp_frame_count"])
         items[4]=items[4] + " → " + str(shoot_config["tlp_interval"])
         menu_display("Shooting Mode",items,display_config)
 
     elif( menu >= 244 and menu <= 249 ):      # Timelapse video submenu
-        items=["Single Shot","Bracketing","Interval Timer Shoot","Timeplapse Movie","* Frames","* Interval"]
+        items=["Photo","Bracketing","Interval Timer Shoot","Timeplapse Movie","* Frames","* Interval"]
         items[4]=items[4] + " → " + str(shoot_config["tlv_frame_count"])
         items[5]=items[5] + " → " + str(shoot_config["tlv_interval"])
         menu_display("Shooting Mode",items,display_config)
 
+    elif( menu >= 31 and menu <= 39 ):        # Image Setting Menu
+        items=["Size","Output","File","Status LED"]
+        items[0] = items[0] + " → " + str(image_h[camera_config["image_size"]]) +" X " + str(image_w[camera_config["image_size"]])
+        if(camera_config["bnw"]):
+            items[1] += " → B & W"
+        else:
+            items[1] += " → COLOR"
+        if(camera_config["raw"]):
+            items[2] += " → JPG + RAW"
+        else:
+            items[2] += " → JPG"
+        if(display_config["status_led"]):
+            items[3] += " → On"
+        else:
+            items[3] += " → Off"
+        menu_display("Image Settings ",items,display_config)
+        
     elif( menu >= 41 and menu <= 49 ):        # System Menu
         items=["Screen Brightness","Disk","Wipe Data","Save Settings","Load Settings","Reset Settings"]
         usage = 0
@@ -302,37 +316,40 @@ def menu_control(display_config,shoot_config,camera_config):
         menu_display("System Menu",items,display_config)
 
     elif( menu >= 51 and menu <= 59 ):              # Power Options
-        items=["Reboot","Poweroff"]
+        items=["Power Saver","Reboot","Poweroff"]
         menu_display("Power Options",items,display_config)
 
     elif( menu == 511 ):
-        items=["Reboot → Sure ?","Poweroff"]
-        menu_display("Power Options",items,display_config)
-
-    elif( menu == 5112 ):
-        items=["Reboot","→ Configs saved","Poweroff"]
-        menu_display("Power Options",items,display_config)
-    
-    elif( menu == 5113 ):
-        items=["Reboot","→ Configs saved","→ Camera stopped","Poweroff"]
-        menu_display("Power Options",items,display_config)
-
-    elif( menu == 5114 ):
-        items=["Reboot","→ Configs saved","→ Camera stopped","→ Rebooting now . . .","Poweroff"]
+        items=["Power Saver → Sure ?","Reboot","Poweroff"]
         menu_display("Power Options",items,display_config)
 
     elif( menu == 522 ):
-        items=["Reboot","Poweroff → Sure ?"]
+        items=["Power Saver","Reboot → Sure ?","Poweroff"]
         menu_display("Power Options",items,display_config)
 
     elif( menu == 5223 ):
-        items=["Reboot","Poweroff","→ Configs saved"]
+        items=["Power Saver","Reboot","→ Configs saved","Poweroff"]
         menu_display("Power Options",items,display_config)
-
+    
     elif( menu == 5224 ):
-        items=["Reboot","Poweroff","→ Configs saved","→ Camera stopped"]
-        menu_display("Power Options",items,display_config)
-    elif( menu == 5225 ):
-        items=["Reboot","Poweroff","→ Configs saved","→ Camera stopped","→ Bye Bye !!!"]
+        items=["Power Saver","Reboot","→ Configs saved","→ Camera stopped","Poweroff"]
         menu_display("Power Options",items,display_config)
 
+    elif( menu == 5225 ):
+        items=["Power Saver","Reboot","→ Configs saved","→ Camera stopped","→ Rebooting now . . .","Poweroff"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 533 ):
+        items=["Power Saver","Reboot","Poweroff → Sure ?"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 5334 ):
+        items=["Power Saver","Reboot","Poweroff","→ Configs saved"]
+        menu_display("Power Options",items,display_config)
+
+    elif( menu == 5335 ):
+        items=["Power Saver","Reboot","Poweroff","→ Configs saved","→ Camera stopped"]
+        menu_display("Power Options",items,display_config)
+    elif( menu == 5336 ):
+        items=["Power Saver","Reboot","Poweroff","→ Configs saved","→ Camera stopped","→ Bye Bye !!!"]
+        menu_display("Power Options",items,display_config)

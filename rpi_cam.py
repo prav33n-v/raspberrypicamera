@@ -24,58 +24,66 @@ exposure_time=[0,625,800,1000,1250,1562,2000,2500,3125,4000,5000,6250,8000,10000
 image_height=[1600,2048,2464,3008,3264,3888,4000,4656]
 image_width=[1200,1536,1632,2000,2448,2592,2800,3496]
 
-def blink():
-    for y in range (1,7,1):
-        touchphat.set_led(y, True)
-        time.sleep(0.05)
-        touchphat.set_led(y, False)
-    for y in range (6,0,-1):
-        touchphat.set_led(y, True)
-        time.sleep(0.05)
-        touchphat.set_led(y, False)
+def display_sleep(brightness,sleep):
+    global backlight
+    if(sleep):
+        for x in range (brightness,-1,-1):
+            backlight.ChangeDutyCycle(x)
+            time.sleep(0.01)
+    else:
+        for x in range (0,brightness+1,1):
+            backlight.ChangeDutyCycle(x)
+            time.sleep(0.01)
 
 def init(display_config,shoot_config,camera_config):
-    backlight.start(display_config["brightness"])
+    backlight.start(1)
     lcd.boot_disp("camera_logo.jpeg")
     camera.initialize_camera(camera_config)
-    blink()
+    display_sleep(display_config["brightness"],False)
 
 def end_program():
     lcd.boot_disp("camera_down_logo.jpeg")
     camera.stop_camera()
     GPIO.cleanup()       # clean up GPIO on CTRL+C exit
 
-def touch_input(input):
+def touch_input(input_value):
     global display_config,shoot_config,camera_config
-    if(input == 1):                                                             # BACK key
-        touchphat.set_led(input, False)
+    if(input_value == 1):                                                             # BACK key
+        touchphat.set_led(input_value, display_config["status_led"])
+        if(display_config["menu"] == -1):
+            display_sleep(display_config["brightness"],False)
         display_config,shoot_config,camera_config = operation.back_button(display_config,shoot_config,camera_config)
 
-    elif(input == 2):                                                           # Down key
-        touchphat.set_led(input, False)
+    elif(input_value == 2):                                                           # Down key
+        touchphat.set_led(input_value, display_config["status_led"])
         display_config,shoot_config,camera_config = operation.down_button(display_config,shoot_config,camera_config)
 
-    elif(input == 3):                                                           # Left key being used as DECREMENT ( - )
-        touchphat.set_led(input, False)
+    elif(input_value == 3):                                                           # Left key being used as DECREMENT ( - )
+        touchphat.set_led(input_value, display_config["status_led"])
         display_config,shoot_config,camera_config = operation.left_button(display_config,shoot_config,camera_config)
         if(display_config["menu"] == 41):
             backlight.ChangeDutyCycle(display_config["brightness"])
 
-    elif(input == 4):                                                           # Right key being used as INCREMENT ( + )
-        touchphat.set_led(input, False)
+    elif(input_value == 4):                                                           # Right key being used as INCREMENT ( + )
+        touchphat.set_led(input_value, display_config["status_led"])
         display_config,shoot_config,camera_config = operation.right_button(display_config,shoot_config,camera_config)
         if(display_config["menu"] == 41):
             backlight.ChangeDutyCycle(display_config["brightness"])
 
-    elif(input == 5):                                                           # UP key
-        touchphat.set_led(input, False)
+    elif(input_value == 5):                                                           # UP key
+        touchphat.set_led(input_value, display_config["status_led"])
         display_config,shoot_config,camera_config = operation.up_button(display_config,shoot_config,camera_config)
 
     else:                                                                       # ENTER key
-        touchphat.set_led(input, False)
+        touchphat.set_led(input_value, display_config["status_led"])
+        if(display_config["menu"] == -1):
+            display_sleep(display_config["brightness"],False)
         display_config,shoot_config,camera_config = operation.ok_shutter_button(display_config,shoot_config,camera_config)
         if(((display_config["menu"] > 40) and (display_config["menu"] < 50)) or ((display_config["menu"] > 4000) and (display_config["menu"] < 5000))):
             backlight.ChangeDutyCycle(display_config["brightness"])
+        if(display_config["menu"] == -2):
+            display_config["menu"] = -1
+            display_sleep(display_config["brightness"],True)
 
 # Code to get input from Pimoroni Touchphat 
 # Based on the example code provided by pimoroni
@@ -99,6 +107,7 @@ def main():
             signal.pause()  
         except KeyboardInterrupt:
             print("Keyboard interrupt detected")
+            display_config["menu"] == 0
             operation.save_settings(display_config,shoot_config,camera_config,"auto_saved")
             print("Current settings saved")
             end_program()

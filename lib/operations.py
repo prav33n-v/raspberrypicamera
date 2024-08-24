@@ -149,88 +149,77 @@ def poweroff(display_config,shoot_config,camera_config):
 
     
 def back_button(display_config,shoot_config,camera_config):
-    if(display_config["menu"] == 0):
+    if (display_config["menu"] == -1):
+        camera.initialize_camera(camera_config)
+        display_config["menu"] = 0
+        lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
+    elif(display_config["menu"] == 0):
         lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
     else:
         if(display_config["menu"] > 0 and display_config["menu"] < 9):          # Back from main menu page to home screen
             display_config["menu"] = 0
             lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
+
         elif(display_config["menu"] > 10 and display_config["menu"] < 19):      # Back from image settings page to main menu page
             camera.initialize_camera(camera_config)
             display_config["menu"] = 1
             display_config["left"] = display_config["right"] = False
+
         elif(display_config["menu"] > 20 and display_config["menu"] < 29):      # Back from shooting mode page to main menu page
             display_config["menu"] = 2
+
         elif(display_config["menu"] >= 221 and display_config["menu"] <=229):   # Back from bracketing mode submenu to shooting mode page
             display_config["menu"] = 22 
             display_config["left"] = display_config["right"] = False
             display_config["up"] = display_config["down"] = True
-            if(shoot_config["exposure_common"]):                                # Update common exposure value if true
-                camera_config["exposure"] = shoot_config["tlp_exposure"] = shoot_config["tlv_exposure"] = shoot_config["bkt_exposure"]
-            else:
-                camera_config["exposure"] = shoot_config["bkt_exposure"]
-            if(shoot_config["raw_common"]):                                     # Update common config for saving raw file if true
-                camera_config["raw"] = shoot_config["tlp_raw"] = shoot_config["tlv_raw"] = shoot_config["bkt_raw"]
-            else:
-                camera_config["raw"] = shoot_config["bkt_raw"]
-            if(shoot_config["bnw_common"]):                                     # Update common config for black and white output image if true
-                camera_config["bnw"] = shoot_config["tlp_bnw"] = shoot_config["tlv_bnw"] = shoot_config["bkt_bnw"]
-            else:
-                camera_config["bnw"] = shoot_config["bkt_bnw"]
+
         elif(display_config["menu"] >= 231 and display_config["menu"] <=239):   # Back from timelapse photo mode submenu to shooting mode page
             display_config["menu"] = 23
             display_config["left"] = display_config["right"] = False
-            if(shoot_config["exposure_common"]):                                # Update common exposure value if true
-                camera_config["exposure"] = shoot_config["bkt_exposure"] = shoot_config["tlv_exposure"] = shoot_config["tlp_exposure"]
-            else:
-                camera_config["exposure"] = shoot_config["tlp_exposure"]
-            if(shoot_config["raw_common"]):                                     # Update common config for saving raw file if true
-                camera_config["raw"] = shoot_config["bkt_raw"] = shoot_config["tlv_raw"] = shoot_config["tlp_raw"]
-            else:
-                camera_config["raw"] = shoot_config["tlp_raw"]
-            if(shoot_config["bnw_common"]):                                     # Update common config for black and white output image if true
-                camera_config["bnw"] = shoot_config["bkt_bnw"] = shoot_config["tlv_bnw"] = shoot_config["tlp_bnw"]
-            else:
-                camera_config["bnw"] = shoot_config["tlp_bnw"]
+
         elif(display_config["menu"] >= 241 and display_config["menu"] <=249):   # Back from timelapse video mode submenu to shooting mode page
             display_config["menu"] = 24
             display_config["left"] = display_config["right"] = False
-            if(shoot_config["exposure_common"]):                                # Update common exposure value if true
-                camera_config["exposure"] = shoot_config["tlp_exposure"] = shoot_config["bkt_exposure"] = shoot_config["tlv_exposure"]
-            else:
-                camera_config["exposure"] = shoot_config["tlv_exposure"]
-            if(shoot_config["raw_common"]):                                     # Update common config for saving raw file if true
-                camera_config["raw"] = shoot_config["tlp_raw"] = shoot_config["bkt_raw"] = shoot_config["tlv_raw"]
-            else:
-                camera_config["raw"] = shoot_config["tlv_raw"]
-            if(shoot_config["bnw_common"]):                                     # Update common config for black and white output image if true
-                camera_config["bnw"] = shoot_config["tlp_bnw"] = shoot_config["bkt_bnw"] = shoot_config["tlv_bnw"]
-            else:
-                camera_config["bnw"] = shoot_config["tlv_bnw"]
+
+        elif(display_config["menu"] > 30 and display_config["menu"] < 39):      # Back from image settings menu page to main menu page
+            display_config["menu"] = 3
+
         elif(display_config["menu"] > 40 and display_config["menu"] < 49):      # Back from system menu page to main menu page
             display_config["menu"] = 4
             display_config["left"] = display_config["right"] = False
+
         elif(display_config["menu"] == 4333 or display_config["menu"] == 433):  # Back from wiping data of system menu page
             display_config["menu"] = 4
+
         elif(display_config["menu"] == 4444 or display_config["menu"] == 444):  # Back from save setting of system menu page
             display_config["menu"] = 4
+
         elif(display_config["menu"] == 4555 or display_config["menu"] == 455):  # Back from load setting of system menu page
             display_config["menu"] = 4
+
         elif(display_config["menu"] == 4666 or display_config["menu"] == 466):  # Back from reset setting of system menu page
             display_config["menu"] = 4
+
         elif(display_config["menu"] > 50 and display_config["menu"] < 59):      # Back from power options page to main menu page
             display_config["menu"] = 5
+
         elif(display_config["menu"] == 511):      # Back from reboot option confirmation to main menu page
             display_config["menu"] = 51
+
         elif(display_config["menu"] == 522):      # Back from poweroff option confirmation to main menu page
             display_config["menu"] = 52
+
         else:
             print("Unexpected menu value BACK button : ",display_config["menu"])
         lcd.menu_control(display_config,shoot_config,camera_config)
     return display_config,shoot_config,camera_config
 
 def ok_shutter_button(display_config,shoot_config,camera_config):
-    if (display_config["menu"] == 0):     # Capture
+    if (display_config["menu"] == -1):
+        camera.initialize_camera(camera_config)
+        display_config["menu"] = 0
+        lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
+    elif (display_config["menu"] == 0):     # Capture
         if(shoot_config["shoot_mode"] == 1):  # Single shot
             if(os.path.exists(shoot_config["storage_path"] + "Photo/")):
                 print("Photo directory exists. Writing in directory...")
@@ -264,7 +253,7 @@ def ok_shutter_button(display_config,shoot_config,camera_config):
                 os.mkdir(shoot_config["storage_path"] +"TimelapseMovie/")
             path = shoot_config["storage_path"]  + "TimelapseMovie/TLV_" + str(timestr)+"/"
             timelapse(display_config,shoot_config,camera_config,path)
-    elif(display_config["menu"] == 1):                                        # Select image settings from main menu page
+    elif(display_config["menu"] == 1):                                      # Select image settings from main menu page
         display_config["menu"] = 11
         display_config["left"] = display_config["right"] = True
     elif(display_config["menu"] == 2):                                      # Select shooting mode from main menu page
@@ -303,13 +292,15 @@ def ok_shutter_button(display_config,shoot_config,camera_config):
         else:
             display_config["left"] = True
         shoot_config["shoot_mode"]=4
+    elif(display_config["menu"] == 3):                                      # Select image settings menu from main menu page
+        display_config["menu"] = 31
     elif(display_config["menu"] == 4):                                      # Select system menu from main menu page
         display_config["menu"] = 41
         display_config["left"] = display_config["right"] = True
     elif(display_config["menu"] == 43):                                     # Select wipe data from system menu page
         display_config["menu"] = 433
     elif(display_config["menu"] == 433):                                    # Confirm wipe data from system menu page
-        targetDir=["Photo","Bracketing","Timelapse_Photo","Timelapse_Video"]
+        targetDir=["Photo","Bracketing","IntervalTimer","Timelapse_Movie"]
         for x in targetDir:
             path=os.path.join(shoot_config["storage_path"],x)
             shutil.rmtree(path, ignore_errors=True)
@@ -334,34 +325,39 @@ def ok_shutter_button(display_config,shoot_config,camera_config):
         display_config["menu"] = 466
     elif(display_config["menu"] == 466):                                    # Confirm reset settings from system menu page
         display_config,shoot_config,camera_config = reset_settings()
-        print(display_config)
         display_config["menu"] = 4666
     elif(display_config["menu"] == 4666):                                   # After resetting settings from system menu page
         display_config["menu"] = 46
     elif(display_config["menu"] == 5):                                      # Select power options menu from main menu page
         display_config["menu"] = 51
-    elif(display_config["menu"] == 51):                                     # Select reboot option from power options
+    elif(display_config["menu"] == 51):										# Select standby mode
         display_config["menu"] = 511
-    elif(display_config["menu"] == 511):                                    # Confirm reboot from power options
-        reboot(display_config,shoot_config,camera_config)
-    elif(display_config["menu"] == 52):                                     # Select poweroff option from power options
+    elif(display_config["menu"] == 511):                                    # Confirm standby option from power options
+        display_config["menu"] = -2
+        camera.stop_camera()
+    elif(display_config["menu"] == 52):                                     # Select reboot option from power options
         display_config["menu"] = 522
-    elif(display_config["menu"] == 522):                                    # Confirm poweroff from power options
+    elif(display_config["menu"] == 522):                                    # Confirm reboot from power options
+        reboot(display_config,shoot_config,camera_config)
+    elif(display_config["menu"] == 53):                                     # Select poweroff option from power options
+        display_config["menu"] = 533
+    elif(display_config["menu"] == 533):                                    # Confirm poweroff from power options
         poweroff(display_config,shoot_config,camera_config)
     else:
         print("Unexpected menu value OK_SHUTTER button : ",display_config["menu"])
     lcd.menu_control(display_config,shoot_config,camera_config)
     return display_config,shoot_config,camera_config
 
-
 def down_button(display_config,shoot_config,camera_config):
     if(display_config["menu"] >= 1 and display_config["menu"] <=9):         # Main menu page
         display_config["menu"] = down(display_config["menu"],1,5) 
-    elif(display_config["menu"] >= 11 and display_config["menu"] <=19):     # Image settings page
+    elif(display_config["menu"] >= 11 and display_config["menu"] <=19):     # Camera settings page
         display_config["menu"] = down(display_config["menu"],11,16) 
     elif(display_config["menu"] >= 21 and display_config["menu"] <=29):     # Shooting mode page
         display_config["menu"] = down(display_config["menu"],21,24) 
         shoot_config["shoot_mode"] = display_config["menu"] % 10
+    elif(display_config["menu"] >= 31 and display_config["menu"] <=39):     # Image settings page
+        display_config["menu"] = down(display_config["menu"],31,34)
     elif(display_config["menu"] >= 231 and display_config["menu"] <=239):   # Timelapse photo submenu
         display_config["menu"] = down(display_config["menu"],234,235) 
         if(display_config["menu"] == 234):
@@ -387,7 +383,7 @@ def down_button(display_config,shoot_config,camera_config):
     elif(display_config["menu"] == 4666 or display_config["menu"] == 466):  # After reset settings from system menu page
         display_config["menu"] = 41
     elif(display_config["menu"] >= 51 and display_config["menu"] <=59):     # Power options page
-        display_config["menu"] = down(display_config["menu"],51,52) 
+        display_config["menu"] = down(display_config["menu"],51,53) 
     else:
         print("Unexpected menu value DOWN button : ",display_config["menu"])
     lcd.menu_control(display_config,shoot_config,camera_config)
@@ -399,11 +395,13 @@ def up_button(display_config,shoot_config,camera_config):
         display_config["menu"] = 1
     elif(display_config["menu"] >= 1 and display_config["menu"] <=9):       # Main menu page
         display_config["menu"] = up(display_config["menu"],1,5) 
-    elif(display_config["menu"] >= 11 and display_config["menu"] <=19):     # Image settings page
+    elif(display_config["menu"] >= 11 and display_config["menu"] <=19):     # Camera settings page
         display_config["menu"] = up(display_config["menu"],11,16) 
     elif(display_config["menu"] >= 21 and display_config["menu"] <=29):     # Shooting mode page
         display_config["menu"] = up(display_config["menu"],21,24) 
         shoot_config["shoot_mode"] = display_config["menu"] % 10
+    elif(display_config["menu"] >= 31 and display_config["menu"] <=39):     # Image settings page
+        display_config["menu"] = up(display_config["menu"],31,34)
     elif(display_config["menu"] >= 231 and display_config["menu"] <=239):   # Timelapse photo submenu
         display_config["menu"] = up(display_config["menu"],234,235)
         if(display_config["menu"] == 234):
@@ -429,7 +427,7 @@ def up_button(display_config,shoot_config,camera_config):
     elif(display_config["menu"] == 4666 or display_config["menu"] == 466):  # Move up from reset setting option of system menu page
         display_config["menu"] = 45
     elif(display_config["menu"] >= 51 and display_config["menu"] <=59):     # Power options page navigation
-        display_config["menu"] = up(display_config["menu"],51,52) 
+        display_config["menu"] = up(display_config["menu"],51,53) 
     else:
         print("Unexpected menu value UP button : ",display_config["menu"])
     lcd.menu_control(display_config,shoot_config,camera_config)
@@ -446,21 +444,25 @@ def left_button(display_config,shoot_config,camera_config):
             camera_config["exposure"] = decrement(camera_config["exposure"],1)
             display_config["left"],display_config["right"] = check_left_right(camera_config["exposure"],0,49,0)
     elif(display_config["menu"] == 12):
+        if(camera_config["analogue_gain"] > camera_config["min_analogue_gain"]):
+            camera_config["analogue_gain"] = decrement(camera_config["analogue_gain"],0.5)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["analogue_gain"],camera_config["min_analogue_gain"],camera_config["max_analogue_gain"],0)
+    elif(display_config["menu"] == 13):
         if(camera_config["contrast"] > camera_config["min_contrast"]):
             camera_config["contrast"] = decrement(camera_config["contrast"],0.5)
             display_config["left"],display_config["right"] = check_left_right(camera_config["contrast"],camera_config["min_contrast"],camera_config["max_contrast"],0)
-    elif(display_config["menu"] == 13):
+    elif(display_config["menu"] == 14):
         if(camera_config["sharpness"] > camera_config["min_sharpness"]):
             camera_config["sharpness"] = decrement(camera_config["sharpness"],0.5)
             display_config["left"],display_config["right"] = check_left_right(camera_config["sharpness"],camera_config["min_sharpness"],camera_config["max_sharpness"],0)
-    elif(display_config["menu"] == 14):                                     # Toggle bnw
-        camera_config["bnw"] = not camera_config["bnw"]
-    elif(display_config["menu"] == 15):                                     # Toggle raw
-        camera_config["raw"] = not camera_config["raw"]
+    elif(display_config["menu"] == 15):
+        if(camera_config["noise_reduction"] > camera_config["min_noise_reduction"]):
+            camera_config["noise_reduction"] = decrement(camera_config["noise_reduction"],1)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["noise_reduction"],camera_config["min_noise_reduction"],camera_config["max_noise_reduction"],0)
     elif(display_config["menu"] == 16):
-        if(camera_config["image_size"] > camera_config["min_image_size"]):
-            camera_config["image_size"] = decrement(camera_config["image_size"],1)
-            display_config["left"],display_config["right"] = check_left_right(camera_config["image_size"],camera_config["min_image_size"],camera_config["max_image_size"],0)
+        if(camera_config["white_balance"] > camera_config["min_white_balance"]):
+            camera_config["white_balance"] = decrement(camera_config["white_balance"],1)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["white_balance"],camera_config["min_white_balance"],camera_config["max_white_balance"],0)
     elif(display_config["menu"] == 223):                                    # Decrease bracket frame count
         if(shoot_config["bkt_frame_count"] > 3):
             shoot_config["bkt_frame_count"] = decrement(shoot_config["bkt_frame_count"],2)
@@ -481,6 +483,16 @@ def left_button(display_config,shoot_config,camera_config):
         if(shoot_config["tlv_interval"] > shoot_config["min_interval"]):
             shoot_config["tlv_interval"] = decrement(shoot_config["tlv_interval"],1)
             display_config["left"],display_config["right"] = check_left_right(shoot_config["tlv_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
+    elif(display_config["menu"] == 31):
+        if(camera_config["image_size"] > camera_config["min_image_size"]):
+            camera_config["image_size"] = decrement(camera_config["image_size"],1)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["image_size"],camera_config["min_image_size"],camera_config["max_image_size"],0)
+    elif(display_config["menu"] == 32):                                     # Toggle bnw
+        camera_config["bnw"] = not camera_config["bnw"]
+    elif(display_config["menu"] == 33):                                     # Toggle raw
+        camera_config["raw"] = not camera_config["raw"]
+    elif(display_config["menu"] == 34):                                     # Toggle status led
+        display_config["status_led"] = not display_config["status_led"]
     lcd.menu_control(display_config,shoot_config,camera_config)
     return display_config,shoot_config,camera_config
 
@@ -495,21 +507,25 @@ def right_button(display_config,shoot_config,camera_config):
             camera_config["exposure"] = increment(camera_config["exposure"],1)
             display_config["left"],display_config["right"] = check_left_right(camera_config["exposure"],0,49,0)
     elif(display_config["menu"] == 12):
+        if(camera_config["analogue_gain"] < camera_config["max_analogue_gain"]):
+            camera_config["analogue_gain"] = increment(camera_config["analogue_gain"],0.5)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["analogue_gain"],camera_config["min_analogue_gain"],camera_config["max_analogue_gain"],0)
+    elif(display_config["menu"] == 13):
         if(camera_config["contrast"] < camera_config["max_contrast"]):
             camera_config["contrast"] = increment(camera_config["contrast"],0.5)
             display_config["left"],display_config["right"] = check_left_right(camera_config["contrast"],camera_config["min_contrast"],camera_config["max_contrast"],0)
-    elif(display_config["menu"] == 13):
+    elif(display_config["menu"] == 14):
         if(camera_config["sharpness"] < camera_config["max_sharpness"]):
             camera_config["sharpness"] = increment(camera_config["sharpness"],0.5)
             display_config["left"],display_config["right"] = check_left_right(camera_config["sharpness"],camera_config["min_sharpness"],camera_config["max_sharpness"],0)
-    elif(display_config["menu"] == 14):                                     # Toggle bnw
-        camera_config["bnw"] = not camera_config["bnw"]
-    elif(display_config["menu"] == 15):                                     # Toggle raw
-        camera_config["raw"] = not camera_config["raw"]
+    elif(display_config["menu"] == 15):
+        if(camera_config["noise_reduction"] < camera_config["max_noise_reduction"]):
+            camera_config["noise_reduction"] = increment(camera_config["noise_reduction"],1)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["noise_reduction"],camera_config["min_noise_reduction"],camera_config["max_noise_reduction"],0)
     elif(display_config["menu"] == 16):
-        if(camera_config["image_size"] < camera_config["max_image_size"]):
-            camera_config["image_size"] = increment(camera_config["image_size"],1)
-            display_config["left"],display_config["right"] = check_left_right(camera_config["image_size"],camera_config["min_image_size"],camera_config["max_image_size"],0)
+        if(camera_config["white_balance"] < camera_config["max_white_balance"]):
+            camera_config["white_balance"] = increment(camera_config["white_balance"],1)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["white_balance"],camera_config["min_white_balance"],camera_config["max_white_balance"],0)
     elif(display_config["menu"] == 223):                                    # Increase bracket frame count
         if(shoot_config["bkt_frame_count"] < 9):
             shoot_config["bkt_frame_count"] = increment(shoot_config["bkt_frame_count"],2)
@@ -530,6 +546,16 @@ def right_button(display_config,shoot_config,camera_config):
         if(shoot_config["tlv_interval"] < shoot_config["max_interval"]):
             shoot_config["tlv_interval"] = increment(shoot_config["tlv_interval"],1)
             display_config["left"],display_config["right"] = check_left_right(shoot_config["tlv_interval"],shoot_config["min_interval"],shoot_config["max_interval"],0)
+    elif(display_config["menu"] == 31):
+        if(camera_config["image_size"] < camera_config["max_image_size"]):
+            camera_config["image_size"] = increment(camera_config["image_size"],1)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["image_size"],camera_config["min_image_size"],camera_config["max_image_size"],0)
+    elif(display_config["menu"] == 32):                                     # Toggle bnw
+        camera_config["bnw"] = not camera_config["bnw"]
+    elif(display_config["menu"] == 33):                                     # Toggle raw
+        camera_config["raw"] = not camera_config["raw"]
+    elif(display_config["menu"] == 34):                                     # Toggle status led
+        display_config["status_led"] = not display_config["status_led"]
     lcd.menu_control(display_config,shoot_config,camera_config)
     return display_config,shoot_config,camera_config
 

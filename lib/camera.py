@@ -1,5 +1,5 @@
 # Using picamera2 module capture image in jpg and dng format as per requirement
-
+import time
 from PIL import Image, ImageOps
 from picamera2 import Picamera2, Preview
 from libcamera import controls
@@ -12,18 +12,16 @@ image_width=[1200,1536,1632,2000,2448,2592,2800,3496]
 def initialize_camera(camera_config):
     picam2.stop()
     configuration = picam2.create_still_configuration(raw={}, main={"size": (image_height[camera_config["image_size"]], image_width[camera_config["image_size"]])}, lores={"size": (640, 480)}, display=None,queue=False)
+    #configuration = picam2.create_still_configuration(raw={}, main={"size": (image_height[camera_config["image_size"]], image_width[camera_config["image_size"]])}, queue=False)
     # camera_config = picam2.create_still_configuration( main={"size": (img_h, img_w)}, lores={"size": (640, 480)}, display=None, raw=picam2.sensor_modes[4],queue=False)
     # Setting up image quality to highest
-    picam2.options['quality'] = 100  # values from 0 to 100
-    picam2.options['contrast'] = camera_config["contrast"]
-    picam2.options['sharpness'] = camera_config["sharpness"]
-    picam2.options['gain'] = 1
+#    picam2.options['quality'] = 100  # values from 0 to 100
     # Configure camera as per above parameters
     picam2.configure(configuration)
     # Initialize camera
     picam2.start()
     if(camera_config["exposure"] != 0):
-        picam2.set_controls({"ExposureTime": exposure_time[camera_config["exposure"]]})
+        picam2.set_controls({"ExposureTime": exposure_time[camera_config["exposure"]], "AnalogueGain": camera_config["analogue_gain"], "Contrast": camera_config["contrast"], "Sharpness": camera_config["sharpness"], "NoiseReductionMode": camera_config["noise_reduction"], "AwbMode": camera_config["white_balance"] })
 
 def shoot_preview(camera_config):
     image = picam2.capture_image()
