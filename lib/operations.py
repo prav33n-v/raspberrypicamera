@@ -2,8 +2,9 @@ import os
 import shutil
 import json
 import time
-
+from PIL import Image, ImageOps
 import lib.audioDAC_lcd as lcd
+import lib.camera as camera
 
 def increment(value,num):
     return (value+num)
@@ -51,6 +52,7 @@ def load_settings(file_type = "default"):
     config_file= os.path.join(os.getcwd(),dir,filename)
     with open(config_file,'r') as openfile:
         camera_config = json.load(openfile)
+    camera.initialize_camera(camera_config)
     return display_config,shoot_config,camera_config
 
 def save_settings(display_config,shoot_config,camera_config,file_type = "default"):
@@ -75,6 +77,7 @@ def reset_settings():
     display_conf,shoot_conf,camera_conf = load_settings()
     save_settings(display_conf,shoot_conf,camera_conf,"custom")
     save_settings(display_conf,shoot_conf,camera_conf,"auto_saved")
+    camera.initialize_camera(camera_conf)
     return display_conf,shoot_conf,camera_conf
     
 def reboot(display_config,shoot_config,camera_config):
@@ -89,6 +92,47 @@ def reboot(display_config,shoot_config,camera_config):
     lcd.boot_disp("camera_down_logo.jpeg")
     os.system("sudo reboot")
     time.sleep(5)
+    
+def single_shot(display_config,shoot_config,camera_config,path):
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    image_filename = path + "img_" + str(timestr)
+    camera.shoot(camera_config,image_filename)
+    image=Image.open(image_filename+".jpg")
+    lcd.camera_home(display_config,shoot_config,camera_config,image)
+
+def bracketing(display_config,shoot_config,camera_config,path):
+    os.mkdir(path)
+    num = (shoot_config["bkt_frame_count"]//2) * (-1)
+    if((camera_config["exposure"] + num) < 0):
+        camera_config["exposure"] += ((shoot_config["bkt_frame_count"]//2) + 1)
+    if((camera_config["exposure"] - num) > 49 ):
+        camera_config["exposure"] -= ((shoot_config["bkt_frame_count"]//2) - 1)
+    for x in range(shoot_config["bkt_frame_count"]):
+        image_filename=path+"BKT_"+str(x)
+        camera_config["exposure"] += num + x
+        print(camera_config)
+        camera.initialize_camera(camera_config)
+        camera.shoot(camera_config,image_filename)
+        lcd.progress_bar(image_filename+".jpg",x,shoot_config,camera_config)
+    lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
+
+def interval_timer(display_config,shoot_config,camera_config,path):
+    os.mkdir(path)
+    for x in range(shoot_config["tlp_frame_count"]):
+        image_filename=path+"InT_"+str(x)
+        camera.shoot(camera_config,image_filename)
+        time.sleep(shoot_config["tlp_interval"])
+        lcd.progress_bar(image_filename+".jpg",x,shoot_config,camera_config)
+    lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
+
+def timelapse(display_config,shoot_config,camera_config,path):
+    os.mkdir(path)
+    for x in range(shoot_config["tlv_frame_count"]):
+        image_filename=path+"TLV_"+str(x)
+        camera.shoot(camera_config,image_filename)
+        time.sleep(shoot_config["tlv_interval"])
+        lcd.progress_bar(image_filename+".jpg",x,shoot_config,camera_config)
+    lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
     
 def poweroff(display_config,shoot_config,camera_config):
     display_config["menu"] = 0
@@ -106,11 +150,13 @@ def poweroff(display_config,shoot_config,camera_config):
     
 def back_button(display_config,shoot_config,camera_config):
     if(display_config["menu"] == 0):
-        lcd.camera_home(display_config,shoot_config,camera_config)
+        lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
     else:
         if(display_config["menu"] > 0 and display_config["menu"] < 9):          # Back from main menu page to home screen
             display_config["menu"] = 0
+            lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
         elif(display_config["menu"] > 10 and display_config["menu"] < 19):      # Back from image settings page to main menu page
+            camera.initialize_camera(camera_config)
             display_config["menu"] = 1
             display_config["left"] = display_config["right"] = False
         elif(display_config["menu"] > 20 and display_config["menu"] < 29):      # Back from shooting mode page to main menu page
@@ -184,7 +230,41 @@ def back_button(display_config,shoot_config,camera_config):
     return display_config,shoot_config,camera_config
 
 def ok_shutter_button(display_config,shoot_config,camera_config):
-    if(display_config["menu"] == 1):                                        # Select image settings from main menu page
+    if (display_config["menu"] == 0):     # Capture
+        if(shoot_config["shoot_mode"] == 1):  # Single shot
+            if(os.path.exists(shoot_config["storage_path"] + "Photo/")):
+                print("Photo directory exists. Writing in directory...")
+            else:
+                print("Photo directory not found. Creating directory...")
+                os.mkdir(shoot_config["storage_path"] + "Photo/")
+            path = shoot_config["storage_path"] + "Photo/"
+            single_shot(display_config,shoot_config,camera_config,path)
+        elif(shoot_config["shoot_mode"] == 2):  # Bracketing
+            timestr = time.strftime("%Y%m%d-%H%M%S")
+            if(os.path.exists(shoot_config["storage_path"] + "Bracketing/")):
+                print("Bracketing directory exists. Writing in directory...")
+            else:
+                print("Bracketing directory not found. Creating directory...")
+                os.mkdir(shoot_config["storage_path"] + "Bracketing/")
+            path = shoot_config["storage_path"] + "Bracketing/BKT_" + str(timestr)+"/"
+            bracketing(display_config,shoot_config,camera_config,path)
+        elif(shoot_config["shoot_mode"] == 3):  # Start Interval timer shooting
+            timestr = time.strftime("%Y%m%d-%H%M%S")
+            if(os.path.exists(shoot_config["storage_path"] +"IntervalTimer/")):
+                print("Writing in Interval Timer folder'")
+            else:
+                os.mkdir(shoot_config["storage_path"] +"IntervalTimer/")
+            path = shoot_config["storage_path"]  + "IntervalTimer/TLS_" + str(timestr)+"/"
+            interval_timer(display_config,shoot_config,camera_config,path)
+        elif(shoot_config["shoot_mode"] == 4):
+            timestr = time.strftime("%Y%m%d-%H%M%S")
+            if(os.path.exists(shoot_config["storage_path"] +"TimelapseMovie/")):
+                print("Writing in TimelapseMovie folder'")
+            else:
+                os.mkdir(shoot_config["storage_path"] +"TimelapseMovie/")
+            path = shoot_config["storage_path"]  + "TimelapseMovie/TLV_" + str(timestr)+"/"
+            timelapse(display_config,shoot_config,camera_config,path)
+    elif(display_config["menu"] == 1):                                        # Select image settings from main menu page
         display_config["menu"] = 11
         display_config["left"] = display_config["right"] = True
     elif(display_config["menu"] == 2):                                      # Select shooting mode from main menu page

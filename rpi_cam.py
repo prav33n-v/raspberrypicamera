@@ -40,9 +40,6 @@ def init(display_config,shoot_config,camera_config):
     camera.initialize_camera(camera_config)
     blink()
 
-def preview(display_config,shoot_config,camera_config):
-    lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
-
 def end_program():
     lcd.boot_disp("camera_down_logo.jpeg")
     camera.stop_camera()
@@ -98,10 +95,12 @@ def main():
     
     while(True):
         try:
-            preview(display_config,shoot_config,camera_config)
+            lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
             signal.pause()  
         except KeyboardInterrupt:
             print("Keyboard interrupt detected")
+            operation.save_settings(display_config,shoot_config,camera_config,"auto_saved")
+            print("Current settings saved")
             end_program()
 
 if __name__ == '__main__':

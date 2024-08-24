@@ -17,11 +17,12 @@ def initialize_camera(camera_config):
     picam2.options['quality'] = 100  # values from 0 to 100
     picam2.options['contrast'] = camera_config["contrast"]
     picam2.options['sharpness'] = camera_config["sharpness"]
+    picam2.options['gain'] = 1
     # Configure camera as per above parameters
-    picam2.configure(camera_config)
+    picam2.configure(configuration)
     # Initialize camera
     picam2.start()
-    if(camera_config[exposure] != 0):
+    if(camera_config["exposure"] != 0):
         picam2.set_controls({"ExposureTime": exposure_time[camera_config["exposure"]]})
 
 def shoot_preview(camera_config):
@@ -40,3 +41,6 @@ def shoot(camera_config,image_filename):
         image=Image.open(image_filename+".jpg")
         img=ImageOps.grayscale(image)
         img.save(image_filename+".jpg")
+
+def stop_camera():
+    picam2.stop()

@@ -62,8 +62,9 @@ def draw_bar(image,value,background_color=GRAY,bar_fill_color=WHITE):
     # return the resulting image
     return image
 
-def progress_bar(image_file,value,x,imagecount,mode,background_color=GRAY,bar_fill_color=WHITE):
+def progress_bar(image_file,x,shoot_config,camera_config,background_color=GRAY,bar_fill_color=WHITE):
     basewidth = 240
+    image_count = 1
     image = Image.open(image_file)
     wpercent = (basewidth/float(image.size[0]))
     hsize = int((float(image.size[1])*float(wpercent)))
@@ -72,14 +73,32 @@ def progress_bar(image_file,value,x,imagecount,mode,background_color=GRAY,bar_fi
     new_image.paste(image,(0,30))
     draw = ImageDraw.Draw(new_image)
     # Draw a handy on-screen bar to show us the current brightness
+    if(camera_config["exposure"] == 0):
+        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TEXT, font = home_info)
+    else:
+        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TITLE, font = home_info)
+    if( shoot_config["shoot_mode"] == 1 ):                # mode 1 - stills
+        draw.text((55,5),"PIC", fill = MENU_TEXT,font = home_info)
+    elif( shoot_config["shoot_mode"] == 2 ):              # mode 2 - bracketing
+        draw.text((55,5),"BKT", fill = MENU_TEXT,font = home_info)
+        image_count = shoot_config["bkt_frame_count"]
+    elif( shoot_config["shoot_mode"] == 3 ):              # mode 3 - timelapse stills
+        draw.text((55,5),"InT", fill = MENU_TEXT,font = home_info)
+        image_count = shoot_config["tlp_frame_count"]
+    elif( shoot_config["shoot_mode"] == 4 ):              # mode 4 - timelapse video
+        draw.text((55,5),"TLV", fill = MENU_TEXT,font = home_info)
+        image_count = shoot_config["tlv_frame_count"]
+    if(camera_config["bnw"]):
+        draw.text((5,5),"B & W", fill = MENU_TEXT,font = home_info)
+    else:
+        draw.text((5,5),"COLOR", fill = MENU_TITLE,font = home_info)
+    if (camera_config["raw"]):
+        draw.text((90,5),"RAW", fill = MENU_TEXT,font = home_info)
+    else:
+        draw.text((90,5),"JPG", fill = MENU_TEXT,font = home_info)
+    value = int(((x+1)/image_count)*100)
     bar_width = int((225 / 100.0) * value)
-    if( mode == 1 ):                # mode 1 - stills
-        draw.text((60,5),"PIC", fill = MENU_TEXT,font = home_info)
-    elif( mode == 3 ):              # mode 3 - timelapse stills
-        draw.text((60,5),"TLP", fill = MENU_TEXT,font = home_info)
-    elif( mode == 4 ):              # mode 4 - timelapse video
-        draw.text((60,5),"TLV", fill = MENU_TEXT,font = home_info)
-    draw.text((80,5),str(x)+" / "+str(imagecount), fill = YELLOW,font = home_info)
+    draw.text((5,215),"Processing → "+str(x+1)+" / "+str(image_count), fill = YELLOW,font = home_info)
     draw.rectangle((10,216,230,216), background_color)
     draw.rectangle((10, 216,5+bar_width, 216), bar_fill_color)
     st7789.display(new_image)
@@ -145,7 +164,7 @@ def camera_home(display_config,shoot_config,camera_config,preview_image):
     elif( shoot_config["shoot_mode"] == 2 ):              # mode 2 - bracketing
         draw.text((55,5),"BKT", fill = MENU_TEXT,font = home_info)
     elif( shoot_config["shoot_mode"] == 3 ):              # mode 3 - timelapse stills
-        draw.text((55,5),"TLP", fill = MENU_TEXT,font = home_info)
+        draw.text((55,5),"InT", fill = MENU_TEXT,font = home_info)
     elif( shoot_config["shoot_mode"] == 4 ):              # mode 4 - timelapse video
         draw.text((55,5),"TLV", fill = MENU_TEXT,font = home_info)
     if(camera_config["bnw"]):
