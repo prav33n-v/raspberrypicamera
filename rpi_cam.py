@@ -25,7 +25,6 @@ image_height=[1600,2048,2464,3008,3264,3888,4000,4656]
 image_width=[1200,1536,1632,2000,2448,2592,2800,3496]
 
 def display_sleep(brightness,sleep):
-    global backlight
     if(sleep):
         for x in range (brightness,-1,-1):
             backlight.ChangeDutyCycle(x)

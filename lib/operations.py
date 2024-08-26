@@ -52,6 +52,11 @@ def load_settings(file_type = "default"):
     config_file= os.path.join(os.getcwd(),dir,filename)
     with open(config_file,'r') as openfile:
         camera_config = json.load(openfile)
+    if(shoot_config["shoot_mode"] == 2):
+        if(camera_config["exposure"] <= (shoot_config["bkt_frame_count"] // 2)):
+            camera_config["exposure"] += ((shoot_config["bkt_frame_count"] // 2)+1)
+        elif(camera_config["exposure"] > (49 - (shoot_config["bkt_frame_count"] // 2))):
+            camera_config["exposure"] -= (shoot_config["bkt_frame_count"] // 2)
     camera.initialize_camera(camera_config)
     return display_config,shoot_config,camera_config
 
@@ -102,18 +107,17 @@ def single_shot(display_config,shoot_config,camera_config,path):
 
 def bracketing(display_config,shoot_config,camera_config,path):
     os.mkdir(path)
-    num = (shoot_config["bkt_frame_count"]//2) * (-1)
-    if((camera_config["exposure"] + num) < 0):
-        camera_config["exposure"] += ((shoot_config["bkt_frame_count"]//2) + 1)
-    if((camera_config["exposure"] - num) > 49 ):
-        camera_config["exposure"] -= ((shoot_config["bkt_frame_count"]//2) - 1)
+    original_exposure_value = camera_config["exposure"]
+    exposure_value = camera_config["exposure"] - (shoot_config["bkt_frame_count"]//2)
     for x in range(shoot_config["bkt_frame_count"]):
         image_filename=path+"BKT_"+str(x)
-        camera_config["exposure"] += num + x
+        camera_config["exposure"] = exposure_value + x
         print(camera_config)
         camera.initialize_camera(camera_config)
         camera.shoot(camera_config,image_filename)
         lcd.progress_bar(image_filename+".jpg",x,shoot_config,camera_config)
+    camera_config["exposure"] = original_exposure_value
+    camera.initialize_camera(camera_config)
     lcd.camera_home(display_config,shoot_config,camera_config,camera.shoot_preview(camera_config))
 
 def interval_timer(display_config,shoot_config,camera_config,path):
@@ -167,6 +171,11 @@ def back_button(display_config,shoot_config,camera_config):
 
         elif(display_config["menu"] > 20 and display_config["menu"] < 29):      # Back from shooting mode page to main menu page
             display_config["menu"] = 2
+            if(shoot_config["shoot_mode"] == 2):
+                if(camera_config["exposure"] <= (shoot_config["bkt_frame_count"] // 2)):
+                    camera_config["exposure"] += ((shoot_config["bkt_frame_count"] // 2)+1)
+                elif(camera_config["exposure"] > (49 - (shoot_config["bkt_frame_count"] // 2))):
+                    camera_config["exposure"] -= (shoot_config["bkt_frame_count"] // 2)
 
         elif(display_config["menu"] >= 221 and display_config["menu"] <=229):   # Back from bracketing mode submenu to shooting mode page
             display_config["menu"] = 22 
@@ -440,9 +449,14 @@ def left_button(display_config,shoot_config,camera_config):
             display_config["brightness"] = decrement(display_config["brightness"],5)
             display_config["left"],display_config["right"] = check_left_right(display_config["brightness"],5,100,2)
     elif(display_config["menu"] == 11):
-        if(camera_config["exposure"] > 0):
+        min_exposure = 0
+        max_exposure = 49
+        if(shoot_config["shoot_mode"] == 2):
+            min_exposure = (shoot_config["bkt_frame_count"] // 2) + 1
+            max_exposure = (49 - (shoot_config["bkt_frame_count"] // 2))
+        if(camera_config["exposure"] > min_exposure):
             camera_config["exposure"] = decrement(camera_config["exposure"],1)
-            display_config["left"],display_config["right"] = check_left_right(camera_config["exposure"],0,49,0)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["exposure"],min_exposure,max_exposure,0)
     elif(display_config["menu"] == 12):
         if(camera_config["analogue_gain"] > camera_config["min_analogue_gain"]):
             camera_config["analogue_gain"] = decrement(camera_config["analogue_gain"],0.5)
@@ -503,9 +517,14 @@ def right_button(display_config,shoot_config,camera_config):
             display_config["brightness"] = increment(display_config["brightness"],5)
             display_config["left"],display_config["right"] = check_left_right(display_config["brightness"],5,100,2)
     elif(display_config["menu"] == 11):
-        if(camera_config["exposure"] < 49):
+        min_exposure = 0
+        max_exposure = 49
+        if(shoot_config["shoot_mode"] == 2):
+            min_exposure = (shoot_config["bkt_frame_count"] // 2) + 1
+            max_exposure = (49 - (shoot_config["bkt_frame_count"] // 2))
+        if(camera_config["exposure"] < max_exposure):
             camera_config["exposure"] = increment(camera_config["exposure"],1)
-            display_config["left"],display_config["right"] = check_left_right(camera_config["exposure"],0,49,0)
+            display_config["left"],display_config["right"] = check_left_right(camera_config["exposure"],min_exposure,max_exposure,0)
     elif(display_config["menu"] == 12):
         if(camera_config["analogue_gain"] < camera_config["max_analogue_gain"]):
             camera_config["analogue_gain"] = increment(camera_config["analogue_gain"],0.5)

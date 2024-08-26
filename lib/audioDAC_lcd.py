@@ -18,9 +18,10 @@ white_balance = ("Auto","Tungsten","Fluorescent","Indoor","Daylight","Cloudy")
 
 # Define colors
 RED=(255,0,0)
-GREEN=(0,255,0)
+GREEN=(0,200,0)
 BLACK=(0,0,0)
 GRAY=(120,120,120)
+INFO=(200,200,175)
 WHITE=(255,255,255)
 YELLOW=(255,255,0)
 MENU_SELECT=(200,200,200)
@@ -76,29 +77,29 @@ def progress_bar(image_file,x,shoot_config,camera_config,background_color=GRAY,b
     new_image.paste(image,(0,30))
     draw = ImageDraw.Draw(new_image)
     # Draw a handy on-screen bar to show us the current brightness
+    info_color = MENU_TITLE
+    if(camera_config["bnw"]):
+        info_color = INFO
     if(camera_config["exposure"] == 0):
-        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TEXT, font = home_info)
+        draw.text((165,5),exposure_time[camera_config["exposure"]],fill = MENU_TITLE, font = home_info)
     else:
-        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TITLE, font = home_info)
+        draw.text((165,5),exposure_time[camera_config["exposure"]],fill = MENU_TEXT, font = home_info)
     if( shoot_config["shoot_mode"] == 1 ):                # mode 1 - stills
-        draw.text((55,5),"PIC", fill = MENU_TEXT,font = home_info)
+        draw.text((5,5),"PIC", fill = info_color,font = home_info)
     elif( shoot_config["shoot_mode"] == 2 ):              # mode 2 - bracketing
-        draw.text((55,5),"BKT", fill = MENU_TEXT,font = home_info)
+        draw.text((5,5),"BKT", fill = info_color,font = home_info)
         image_count = shoot_config["bkt_frame_count"]
     elif( shoot_config["shoot_mode"] == 3 ):              # mode 3 - timelapse stills
-        draw.text((55,5),"InT", fill = MENU_TEXT,font = home_info)
+        draw.text((5,5),"InT", fill = info_color,font = home_info)
         image_count = shoot_config["tlp_frame_count"]
     elif( shoot_config["shoot_mode"] == 4 ):              # mode 4 - timelapse video
-        draw.text((55,5),"TLV", fill = MENU_TEXT,font = home_info)
+        draw.text((5,5),"TLV", fill = info_color,font = home_info)
         image_count = shoot_config["tlv_frame_count"]
-    if(camera_config["bnw"]):
-        draw.text((5,5),"B & W", fill = MENU_TEXT,font = home_info)
-    else:
-        draw.text((5,5),"COLOR", fill = MENU_TITLE,font = home_info)
     if (camera_config["raw"]):
-        draw.text((90,5),"RAW", fill = MENU_TEXT,font = home_info)
+        draw.text((40,5),"RAW", fill = INFO,font = home_info)
     else:
-        draw.text((90,5),"JPG", fill = MENU_TEXT,font = home_info)
+        draw.text((40,5),"JPG", fill = RED,font = home_info)
+    draw.text((80,5),("ISO "+str(int(camera_config["analogue_gain"] * 100))), fill = MENU_TEXT,font = home_info)
     value = int(((x+1)/image_count)*100)
     bar_width = int((225 / 100.0) * value)
     draw.text((5,215),"Processing → "+str(x+1)+" / "+str(image_count), fill = YELLOW,font = home_info)
@@ -158,26 +159,26 @@ def camera_home(display_config,shoot_config,camera_config,preview_image):
     image=Image.new("RGB",(240,240),color='black')
     image.paste(preview_image,(0,30))
     draw = ImageDraw.Draw(image)
-    if(camera_config["exposure"] == 0):
-        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TEXT, font = home_info)
-    else:
-        draw.text((130,5),exposure_time[camera_config["exposure"]],fill = MENU_TITLE, font = home_info)
-    if( shoot_config["shoot_mode"] == 1 ):                # mode 1 - stills
-        draw.text((55,5),"PIC", fill = MENU_TEXT,font = home_info)
-    elif( shoot_config["shoot_mode"] == 2 ):              # mode 2 - bracketing
-        draw.text((55,5),"BKT", fill = MENU_TEXT,font = home_info)
-    elif( shoot_config["shoot_mode"] == 3 ):              # mode 3 - timelapse stills
-        draw.text((55,5),"InT", fill = MENU_TEXT,font = home_info)
-    elif( shoot_config["shoot_mode"] == 4 ):              # mode 4 - timelapse video
-        draw.text((55,5),"TLV", fill = MENU_TEXT,font = home_info)
+    info_color = MENU_TITLE
     if(camera_config["bnw"]):
-        draw.text((5,5),"B & W", fill = MENU_TEXT,font = home_info)
+        info_color = INFO
+    if(camera_config["exposure"] == 0):
+        draw.text((165,5),exposure_time[camera_config["exposure"]],fill = MENU_TITLE, font = home_info)
     else:
-        draw.text((5,5),"COLOR", fill = MENU_TITLE,font = home_info)
+        draw.text((165,5),exposure_time[camera_config["exposure"]],fill = MENU_TEXT, font = home_info)
+    if( shoot_config["shoot_mode"] == 1 ):                # mode 1 - stills
+        draw.text((5,5),"PIC", fill = info_color,font = home_info)
+    elif( shoot_config["shoot_mode"] == 2 ):              # mode 2 - bracketing
+        draw.text((5,5),"BKT", fill = info_color,font = home_info)
+    elif( shoot_config["shoot_mode"] == 3 ):              # mode 3 - timelapse stills
+        draw.text((5,5),"InT", fill = info_color,font = home_info)
+    elif( shoot_config["shoot_mode"] == 4 ):              # mode 4 - timelapse video
+        draw.text((5,5),"TLV", fill = info_color,font = home_info)
     if (camera_config["raw"]):
-        draw.text((90,5),"RAW", fill = MENU_TEXT,font = home_info)
+        draw.text((40,5),"RAW", fill = INFO,font = home_info)
     else:
-        draw.text((90,5),"JPG", fill = MENU_TEXT,font = home_info)
+        draw.text((40,5),"JPG", fill = RED,font = home_info)
+    draw.text((80,5),("ISO "+str(int(camera_config["analogue_gain"] * 100))), fill = MENU_TEXT,font = home_info)
     draw.text((3,215),"[•]", fill = RED,font = menu_icon)
     if(display_config["left"]):
         draw.text((80,215),"<", fill = RED,font = menu_icon)
@@ -195,7 +196,7 @@ def menu_control(display_config,shoot_config,camera_config):
         menu_display("Menu",items,display_config)
 
     elif( menu >= 11 and menu <= 19 ):        # Camera control settings
-        items=["Exposure","Gain","Contrast","Sharpness","Noise Reduction","AWB"]
+        items=["Exposure","ISO","Contrast","Sharpness","Noise Reduction","AWB"]
         if(shoot_config["shoot_mode"] == 1):
             menu_page_title = "Photo Mode Setup"
         elif(shoot_config["shoot_mode"] == 2):
@@ -205,7 +206,7 @@ def menu_control(display_config,shoot_config,camera_config):
         elif(shoot_config["shoot_mode"] == 4):
             menu_page_title = "Timelapse Movie Setup"
         items[0] = items[0] + " → " + exposure_time[camera_config["exposure"]]
-        items[1] = items[1] + " → " + str(camera_config["analogue_gain"])
+        items[1] = items[1] + " → " + str(int(camera_config["analogue_gain"] * 100))
         items[2] = items[2] + " → " + str(camera_config["contrast"])
         items[3] = items[3] + " → " + str(camera_config["sharpness"])
         items[4] = items[4] + " → " + noise_reduction_mode[camera_config["noise_reduction"]]
