@@ -1,0 +1,1 @@
+{"shoot_mode": 1, "bkt_frame_count": 5, "bkt_exposure": 5, "min_interval": 1, "max_interval": 9999, "tlp_interval": 1, "tlp_min_frame": 10, "tlp_max_frame": 999999, "tlp_frame_count": 30, "tlv_interval": 15, "tlv_min_frame": 30, "tlv_max_frame": 999999, "tlv_frame_count": 90, "storage_path": "/home/pi/Pictures/"}
