@@ -1,7 +1,12 @@
 # RaspberryPiCamera
 
 ## Description
-This is a project to make a Infrared light sensitive point and shoot camera using Raspberry Pi, microSD card, usb card reader, SPI display, a few switches and ofcourse a camera module (for my build I have used Arducam 16MP NoIR Camera).
+This is a project to make a Infrared light sensitive point and shoot camera using the below hardware :
+ - Raspberry Pi 4
+ - Arducam 16MP NoIR Camera Module
+ - Pimoroni TouchPHAT
+ - Pimoroni Pirate Audio HAT
+ - Pimoroni Hacker HAT
 
 ## OS Installation
 At the time of building this project, I have used Raspbian Pi OS (32bit) distro.
